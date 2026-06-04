@@ -1,0 +1,12 @@
+#Outline of what a swim level config file would probably look like. 
+# Top row is the order of the swim levels, from 0 up. Each row belowmaps a swim activity to the lowest swim level that can do it
+# Considered spelling out each valid level for each camptivity, so it could catch cases where blue swimmers end up in lessons,
+# but it doesn't sound like that could realistically happen and would add complexity to whoever's updating these
+#I think .txt is best, as the top row breaks the csv format and any custom extension will just scare camp ppl away
+#
+"Red","White","Blue"
+
+"Waterskiing","Blue"
+"Sailing","Blue"
+"Paddlesports","Blue"
+"Gold Swimming","Blue"

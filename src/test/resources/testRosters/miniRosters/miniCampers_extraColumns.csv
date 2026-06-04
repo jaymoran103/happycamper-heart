@@ -1,0 +1,4 @@
+"Last Name","First Name","Preferred Name","Camp Grade","Enrolled Sessions/Programs","Extra Column","Another Extra Column"
+"Adams","Andrew","Andy","6th","Session 1/Traditional Camp","Extra Data","Blah Blah"
+"Baker","Bobby","Bob","7th","Session 1/Traditional Camp","","Extra data should be fine as long as the column count matches for each row"
+"Cooper","Charles","Charlie","6th","Session 1/Traditional Camp","",""
