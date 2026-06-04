@@ -1,0 +1,89 @@
+name: Build installers
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Package (${{ matrix.label }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest          # Apple Silicon (M1+)
+            label: macos-arm64
+            type: dmg
+            args: --icon packaging/app.icns
+          - os: macos-15-intel        # Intel Macs; drop this entry if GitHub retires the runner
+            label: macos-intel
+            type: dmg
+            args: --icon packaging/app.icns
+          - os: windows-latest
+            label: windows
+            type: msi
+            args: --icon packaging/app.ico --win-menu --win-shortcut --win-per-user-install
+          - os: ubuntu-latest
+            label: linux
+            type: deb
+            args: --icon packaging/app.png --linux-shortcut
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B package
+
+      - name: Build installer with jpackage
+        shell: bash
+        run: |
+          VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
+          VERSION="${VERSION%-SNAPSHOT}"
+          MAIN_JAR=$(basename target/happy-camper-*.jar)
+
+          mkdir staging
+          cp target/happy-camper-*.jar staging/
+          cp target/lib/*.jar staging/ 2>/dev/null || true
+
+          # Versioned app name (installs as e.g. "HappyCamper-2.2") so users
+          # always know which version they're running
+          jpackage \
+            --name "HappyCamper-${VERSION}" \
+            --app-version "$VERSION" \
+            --input staging \
+            --main-jar "$MAIN_JAR" \
+            --main-class com.echo.HappyCamper \
+            --type ${{ matrix.type }} \
+            --dest dist \
+            ${{ matrix.args }}
+
+          # Versionless, platform-tagged names so /releases/latest/download/<file>
+          # is a stable URL (the version lives in the release tag)
+          for f in dist/*; do
+            mv "$f" "dist/HappyCamper-${{ matrix.label }}.${f##*.}"
+          done
+          ls dist
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HappyCamper-${{ matrix.label }}
+          path: dist/*
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*

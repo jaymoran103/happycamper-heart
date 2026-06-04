@@ -6,6 +6,31 @@ The application is primarily intended for use with data exported from Campminder
 
 HappyCamper's feature-based, service-oriented architecture allows for easy extension and maintenance, and lets users add, analyze, and export just the information most relevant to them.
 
+## Download & Install
+
+HappyCamper runs entirely on your computer — no account, no internet connection, and no Java install required (the installer bundles everything). The installed app is named with its version — e.g. **HappyCamper-2.2** — so you can always tell which one you have.
+
+| Your computer | Download |
+|---|---|
+| Mac (Apple Silicon, 2021+) | [HappyCamper-macos-arm64.dmg](https://github.com/jaymoran103/happycamper-heart/releases/latest/download/HappyCamper-macos-arm64.dmg) |
+| Mac (Intel, pre-2021) | [HappyCamper-macos-intel.dmg](https://github.com/jaymoran103/happycamper-heart/releases/latest/download/HappyCamper-macos-intel.dmg) |
+| Windows | [HappyCamper-windows.msi](https://github.com/jaymoran103/happycamper-heart/releases/latest/download/HappyCamper-windows.msi) |
+| Linux (Debian/Ubuntu) | [HappyCamper-linux.deb](https://github.com/jaymoran103/happycamper-heart/releases/latest/download/HappyCamper-linux.deb) |
+
+Not sure which Mac you have? Click the Apple menu → About This Mac: "Apple M1/M2/M3/M4" means Apple Silicon; "Intel" means Intel.
+
+### Mac
+1. Open the downloaded `.dmg` and drag **HappyCamper** into the **Applications** folder.
+2. The first time you open it, macOS warns that it can't verify the app. This is expected for apps distributed outside the App Store — close the warning, then go to **System Settings → Privacy & Security** and click **Open Anyway**. (On macOS 14 and earlier, right-clicking the app and choosing **Open** also works.)
+3. Details and screenshots in Apple's guide: [Safely open apps on your Mac](https://support.apple.com/en-us/102445).
+
+### Windows
+1. Run the downloaded `.msi` installer and click through — no administrator password needed.
+2. If Windows shows a blue "Windows protected your PC" screen, click **More info → Run anyway**. (This appears because the app isn't registered with Microsoft — this is expected.)
+3. Launch HappyCamper from the Start menu.
+
+All releases, including older versions, are on the [Releases page](https://github.com/jaymoran103/happycamper-heart/releases).
+
 ## Features
 
 ### Activity Tracking

@@ -1,1 +1,5 @@
 /target/
+/dist/
+/staging/
+*.iconset/
+.DS_Store
