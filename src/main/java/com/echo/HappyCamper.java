@@ -14,7 +14,7 @@ import com.echo.ui.MainWindow;
  */
 public class HappyCamper {
     public static final String NAME = "HappyCamper";
-    public static final String VERSION = "2.2.1";
+    public static final String VERSION = "2.2.3";
     public static String NAME_VERSION = NAME+" "+VERSION;
 
     public static boolean WAIT_TO_AUTOMATE = false;
