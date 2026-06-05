@@ -10,10 +10,14 @@ Each folder holds a matched pair of files:
 
 To use them: open HappyCamper, select import, and choose the two files from the same folder.
 
+NOTE FOR WINDOWS USERS: if you're reading this inside the zip
+preview, extract the files first (right-click the zip and choose
+"Extract All") — HappyCamper can't open files still inside a zip.
+
 
 
 -----------------------------------------------------
- 1-single-cabin
+ 1-single-cabins
 -----------------------------------------------------
 A single cabin with fields for all main features. 
 Data has each type of issue HappyCamper is designed to detect:
@@ -40,7 +44,7 @@ necessitated this for registration purposes.) HappyCamper normalizes this, so th
 a single group.
 
 -----------------------------------------------------
- 3-full-session-flaws
+ 3-full-session-gaps
 -----------------------------------------------------
 
 Same data set as session 6, doctored to introduce activity gaps for happycamper to catch. Note that outpost is treated as 

@@ -33,3 +33,5 @@ Not sure which Mac you have? Click the Apple menu → About This Mac: "Apple M1/
 ### Try it with sample data
 
 Don't have a roster export handy? Download [HappyCamper-demo-data.zip](https://github.com/jaymoran103/happycamper-heart/releases/latest/download/HappyCamper-demo-data.zip) — fictional rosters sorted into guided scenarios, with a `START-HERE.txt` explaining what each one demonstrates.
+
+**Unzip it before use** — on Windows, right-click the downloaded file and choose **Extract All**. (Double-clicking a zip only previews it; HappyCamper can't read files still inside one.)
