@@ -20,6 +20,6 @@
  * 
  * The main entry point for the application is {@link com.echo.HappyCamper}.
  * 
- * @version 2.2.0
+ * @version 2.2.1
  */
 package com.echo;
