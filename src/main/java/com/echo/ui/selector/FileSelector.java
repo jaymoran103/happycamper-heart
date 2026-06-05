@@ -1,5 +1,6 @@
 package com.echo.ui.selector;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -71,8 +72,9 @@ public class FileSelector extends InputSelector<File> {
 
     @Override
     protected void buildSelectorPanel(JPanel panel) {
-        // Use the helper method to create a properly aligned panel with BorderLayout
-        JPanel fileSelectionPanel = DialogUtils.createAlignedFlowPanel();
+        // BorderLayout constrains the label to the remaining width, so long paths
+        // ellipsize ("...") instead of wrapping to a clipped second row like FlowLayout
+        JPanel fileSelectionPanel = DialogUtils.createAlignedPanel(new BorderLayout(5, 0));
 
         // Create the browse button
         JButton browseButton = new HoverButton(BUTTON_TEXT);
@@ -81,8 +83,8 @@ public class FileSelector extends InputSelector<File> {
         // Create the file path label
         filePathLabel = new JLabel(DEFAULT_LABEL_TEXT);
 
-        fileSelectionPanel.add(browseButton);
-        fileSelectionPanel.add(filePathLabel);
+        fileSelectionPanel.add(browseButton, BorderLayout.WEST);
+        fileSelectionPanel.add(filePathLabel, BorderLayout.CENTER);
 
         // Create error label for validation messages
         errorLabel = new JLabel(DEFAULT_ERRORLABEL_TEXT);
@@ -143,6 +145,8 @@ public class FileSelector extends InputSelector<File> {
     private void updateFilePathLabel() {
         if (filePathLabel != null) {
             filePathLabel.setText(getShortenedPath(selectedFile));
+            // Full path on hover, since the label may be ellipsized
+            filePathLabel.setToolTipText(selectedFile == null ? null : selectedFile.getAbsolutePath());
         }
     }
 
