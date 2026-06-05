@@ -14,7 +14,6 @@
  *   <li>{@link com.echo.feature.ProgramFeature} - Feature for extracting and analyzing program information</li>
  *   <li>{@link com.echo.feature.PreferenceFeature} - Feature for analyzing camper activity preferences</li>
  *   <li>{@link com.echo.feature.SwimLevelFeature} - Feature for tracking swim levels</li>
- *   <li>{@link com.echo.feature.MedicalFeature} - Feature for tracking medical needs</li>
  * </ul>
  * 
  * Features follow a consistent lifecycle:

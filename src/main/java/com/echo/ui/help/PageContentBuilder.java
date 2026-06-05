@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import com.echo.domain.RosterHeader;
-import com.echo.feature.MedicalFeature;
 import com.echo.feature.PreferenceFeature;
 import com.echo.feature.ProgramFeature;
 import com.echo.feature.SwimLevelFeature;
-import com.echo.filter.MedicalFilter;
 import com.echo.filter.PreferenceFilter;
 import com.echo.filter.SortedProgramFilter;
 import com.echo.filter.SwimLevelFilter;
@@ -76,7 +74,7 @@ public class PageContentBuilder {
     }
 
     private static String[] buildPage_FeatureOverview(){
-        return new String[]{featureOverview(),feature_programs(),feature_preferences(),feature_swimLevels(),feature_medical()};
+        return new String[]{featureOverview(),feature_programs(),feature_preferences(),feature_swimLevels()};
     }
 
     
@@ -401,16 +399,6 @@ public class PageContentBuilder {
         return HTMLFormatter.buildTextElement(lines);
     }
 
-    private static String feature_medical(){
-        ArrayList<HelpLine> lines = new ArrayList<>();
-        lines.add(new HelpLine(LineType.HEADING,"Medical Feature"));
-        lines.add(new HelpLine(LineType.BASIC,"The <b>"+MedicalFeature.FEATURE_NAME+"</b> checks for any medical notes in the camper roster, and provides a filter to show campers with data there. "));
-        lines.add(new HelpLine(LineType.BASIC,""));
-        lines.add(new HelpLine(LineType.BASIC,"Column Required: <b>"+RosterHeader.MEDICAL_NOTES.camperRosterName+"</b>"));
-        lines.add(new HelpLine(LineType.BASIC,""));
-        lines.add(new HelpLine(LineType.BASIC,"Filter Created: <b>"+MedicalFilter.FILTER_NAME+"</b> (shows or hides campers with medical notes)"));
-        return HTMLFormatter.buildTextElement(lines);
-    }
 
 
 

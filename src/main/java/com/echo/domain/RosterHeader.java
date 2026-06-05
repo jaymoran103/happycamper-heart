@@ -34,8 +34,6 @@ public enum RosterHeader {
     UNREQUESTED_ACTIVITIES("Unrequested Activities",true),
     SCORE_BY_ROUND("Preference by Round",false),
 
-    // Medical Feature Column
-    MEDICAL_NOTES("Medical Notes",true,"Medical Notes","Medical Notes"),
     // CAMPER_ID(),
 
     // Swim Level Feature Columns

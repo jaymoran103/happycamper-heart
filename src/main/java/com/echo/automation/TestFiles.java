@@ -28,7 +28,6 @@ public enum TestFiles {
     // Basic roster files
     BASIC_CAMPERS("basicRosters", "singleCabinCampers.csv"),
     BASIC_CAMPERS_PREFERENCES("basicRosters", "singleCabinCampers_preferences.csv"),
-    BASIC_CAMPERS_PREFERENCES_MEDICAL("basicRosters", "singleCabinCampers_preferences_medical.csv"),
     BASIC_CAMPERS_SWIMCOLORS("basicRosters", "singleCabinCampers_swimColors.csv"),
     BASIC_CAMPERS_TRIPLE_FEATURE("basicRosters","singleCabinCampers_tripleFeature.csv"),
 

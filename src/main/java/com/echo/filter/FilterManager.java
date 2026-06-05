@@ -151,9 +151,6 @@ public class FilterManager {
         if (roster.hasFeature("swimlevel")) {
             addFilter(new SwimLevelFilter());
         }
-        if (roster.hasFeature("medical")) {
-            addFilter(new MedicalFilter());
-        }
 
 
     }

@@ -14,7 +14,6 @@
  *   <li>{@link com.echo.filter.SortedProgramFilter} - Filter for program-specific visibility</li>
  *   <li>{@link com.echo.filter.PreferenceFilter} - Filter for preference-based visibility</li>
  *   <li>{@link com.echo.filter.SwimLevelFilter} - Filter for swim level-based visibility</li>
- *  *   <li>{@link com.echo.filter.MedicalFilter} - Filter for medical needs visibility</li>
 
  * </ul>
  * 
