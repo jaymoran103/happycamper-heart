@@ -17,7 +17,7 @@ import com.echo.ui.help.PageContentBuilder.HelpPage;
  */
 public class HelpButton extends HoverButton{
 
-    private static final String IMAGE_PATH = "images/button2.png";
+    private static final String IMAGE_PATH = "button2.png";
     // private static final String IMAGE_URL = "/images/button2.png";
     
     private final HelpPage helpPage;
@@ -60,6 +60,8 @@ public class HelpButton extends HoverButton{
     private void nonImageSetup(){
         setBackground(Color.blue);
         setText(fallbackText);
+        //Strip L&F margins so the fallback text fits in the fixed-size button instead of eliding to "..." (notably on Windows)
+        setMargin(new java.awt.Insets(0,0,0,0));
     }
 
     /**

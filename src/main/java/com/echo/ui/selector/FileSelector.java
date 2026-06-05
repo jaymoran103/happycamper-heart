@@ -204,7 +204,7 @@ public class FileSelector extends InputSelector<File> {
         ValidationResult<File> result;
         if (selectedFile==null){
             result = ValidationResult.failure("No file selected", "Please select a file");
-        } else if (mode == SelectionMode.SAVE && extensions != null && extensions.length > 0) {
+        } else if (mode == SelectionMode.OPEN || (extensions != null && extensions.length > 0)) {
             result = validateChosenPath(selectedFile);
         } else {
             result = ValidationResult.success(selectedFile);
@@ -217,13 +217,15 @@ public class FileSelector extends InputSelector<File> {
             return DEFAULT_LABEL_TEXT;
         }
 
-        String parent = f.getParent().split(File.separator)[0];
+        // Show the immediate parent folder for context, e.g. "Downloads/campers.csv".
+        // Note: File.separator is not regex-safe ("\" on Windows), so avoid String.split here.
+        File parent = f.getParentFile();
         String name = f.getName();
 
-        if (parent.equals("")){
+        if (parent == null || parent.getName().isEmpty()){
             return name;
         }
-        return parent + File.separator + name;
+        return parent.getName() + File.separator + name;
     }
 
     private ValidationResult<File> validateChosenPath(File selectedFile){
