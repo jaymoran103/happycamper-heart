@@ -2,7 +2,11 @@ package com.echo.ui.elements;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.image.BaseMultiResolutionImage;
+import java.awt.image.BufferedImage;
 import java.net.URL;
 
 import javax.swing.ImageIcon;
@@ -36,6 +40,7 @@ public class HelpButton extends HoverButton{
 
         addActionListener(a -> onClick_helpButton());
         setToolTipText("Click for info");
+        setFocusPainted(false); //Suppress the focus rectangle, which obscures the icon on Windows
 
         setIconResource();
         generalSetup(defaultDim);
@@ -72,7 +77,7 @@ public class HelpButton extends HoverButton{
     }
 
     /**
-     * Provides a scaled version of the current icon. 
+     * Provides a scaled version of the current icon.
      * @return icon scaled to this button's preferred dimensions.
      */
     private ImageIcon getScaledIcon(){
@@ -83,10 +88,55 @@ public class HelpButton extends HoverButton{
             height = defaultDim;
         }
 
-        //Scale and return the icon.
-        Image scaledImage = fullIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
-        scaledIcon = new ImageIcon(scaledImage);
+        //Scale at 1x and 2x, so HiDPI displays (e.g. Windows at 125-150% scaling) get a sharp variant
+        //instead of stretching the small bitmap back up.
+        Image base = scaleHighQuality(fullIcon.getImage(), width, height);
+        Image retina = scaleHighQuality(fullIcon.getImage(), width*2, height*2);
+        scaledIcon = new ImageIcon(new BaseMultiResolutionImage(base, retina));
         return scaledIcon;
+    }
+
+    /**
+     * Scales an image down in progressive halving steps with quality interpolation.
+     * A single-pass scale to a small size (256px -> 15px) discards too many pixels at once,
+     * producing the aliased result this replaces.
+     * @param source image to scale
+     * @param targetWidth desired width in pixels
+     * @param targetHeight desired height in pixels
+     * @return scaled image
+     */
+    private static BufferedImage scaleHighQuality(Image source, int targetWidth, int targetHeight){
+        BufferedImage current = toBufferedImage(source);
+
+        //Halve repeatedly until within 2x of the target, then do one final scale to exact size
+        while (current.getWidth()/2 >= targetWidth && current.getHeight()/2 >= targetHeight){
+            current = drawScaled(current, current.getWidth()/2, current.getHeight()/2);
+        }
+        return drawScaled(current, targetWidth, targetHeight);
+    }
+
+    /**
+     * Draws an image into a new buffer at the given size using quality rendering hints.
+     */
+    private static BufferedImage drawScaled(Image source, int width, int height){
+        BufferedImage scaled = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = scaled.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.drawImage(source, 0, 0, width, height, null);
+        g2.dispose();
+        return scaled;
+    }
+
+    /**
+     * Converts an Image to a BufferedImage, returning it directly if it already is one.
+     */
+    private static BufferedImage toBufferedImage(Image image){
+        if (image instanceof BufferedImage buffered){
+            return buffered;
+        }
+        return drawScaled(image, image.getWidth(null), image.getHeight(null));
     }
 
 

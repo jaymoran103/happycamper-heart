@@ -4,8 +4,12 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Image;
+import java.awt.Taskbar;
 import java.awt.event.ActionEvent;
+import java.net.URL;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -33,6 +37,9 @@ import com.echo.ui.help.PageContentBuilder.HelpPage;
  * Contains the roster table, sidebar, and control buttons.
  */
 public class MainWindow extends JFrame {
+
+    private static final String ICON_PATH = "app.png";
+
     private final RosterService rosterService;
 
     private EnhancedRoster currentRoster;
@@ -55,6 +62,7 @@ public class MainWindow extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1200, 800);
         setLocationRelativeTo(null);
+        setAppIcon();
 
         // Create components
         sidebarPanel = new JPanel(new BorderLayout());
@@ -84,6 +92,30 @@ public class MainWindow extends JFrame {
         // Initially hide the roster table
         rosterTable.setVisible(false);
         sidebarPanel.setVisible(false);
+    }
+
+    /**
+     * Sets the application icon for this window and (where supported) the taskbar/dock,
+     * replacing the default Java mascot shown by the windowing system.
+     */
+    private void setAppIcon() {
+        URL resource = getClass().getClassLoader().getResource(ICON_PATH);
+        if (resource == null) {
+            System.err.println("Failed to load image: " + ICON_PATH);
+            return;
+        }
+        Image icon = new ImageIcon(resource).getImage();
+
+        // Window/title bar and taskbar icon on Windows and Linux. Dialogs inherit it from this frame.
+        setIconImage(icon);
+
+        // Dock icon on macOS when launched from a plain jar (the packaged .app already provides it).
+        if (Taskbar.isTaskbarSupported()) {
+            Taskbar taskbar = Taskbar.getTaskbar();
+            if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+                taskbar.setIconImage(icon);
+            }
+        }
     }
 
     /**
