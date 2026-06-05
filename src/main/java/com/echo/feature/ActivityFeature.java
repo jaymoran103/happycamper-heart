@@ -65,6 +65,8 @@ public class ActivityFeature implements RosterFeature {
 
     static {
         List<String> headers = new ArrayList<>();
+        // Add the cabin header, merged from the activity roster alongside the rounds
+        headers.add(RosterHeader.CABIN.standardName);
         // Add headers for each round
         for (int i = 1; i <= MAX_ROUNDS; i++) {
             headers.add(RosterHeader.buildRoundString(i));
