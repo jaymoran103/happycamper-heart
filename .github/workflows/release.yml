@@ -29,6 +29,31 @@ jobs:
           command -v xvfb-run >/dev/null || (sudo apt-get update && sudo apt-get install -y xvfb)
           xvfb-run -a mvn -B test
 
+  # Zip the sample rosters so the release carries a stable
+  # /releases/latest/download/HappyCamper-demo-data.zip link
+  demo-data:
+    name: Package demo data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Zip demo data
+        run: |
+          cp -r demo-data HappyCamper-demo-data
+          zip -r HappyCamper-demo-data.zip HappyCamper-demo-data -x "*.DS_Store" -x "*.gitkeep"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HappyCamper-demo-data
+          path: HappyCamper-demo-data.zip
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: HappyCamper-demo-data.zip
+
   package:
     name: Package (${{ matrix.label }})
     needs: test

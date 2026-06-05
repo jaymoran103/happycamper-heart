@@ -25,14 +25,22 @@
   h1 { font-size: 2.4rem; margin-top: 1rem; }
   p.version { margin-top: .5rem; font-size: .95rem; font-weight: 700; color: var(--accent-dark); }
   p.tagline { max-width: 34rem; margin: 0.75rem auto 2.5rem; font-size: 1.05rem; line-height: 1.5; color: #5c6a5e; }
-  .buttons { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; max-width: 60rem; }
+  .buttons { display: flex; flex-wrap: nowrap; gap: 1rem; justify-content: center; max-width: 64rem; width: 100%; }
   .dl {
     background: var(--card); border: 2px solid #d9e8d9; border-radius: 12px;
-    padding: 1.25rem 1.5rem; width: 16rem; text-align: center;
+    padding: 1.25rem 1.5rem; flex: 1 1 0; min-width: 0; text-align: center;
     transition: transform .1s ease;
   }
   .dl:hover { transform: translateY(-2px); }
   .dl.suggested { border-color: var(--accent); box-shadow: 0 4px 14px rgba(61,145,80,.25); }
+  .dl.demo {
+    margin-top: 1.5rem; width: 22rem;
+    background: #eef5fb; border-color: #b8d0e6;
+  }
+  .dl.demo h2 { color: #2f568a; }
+  .dl.demo a.button { background: #2b68b8; }
+  .dl.demo a.button:hover { background: #1f649c; }
+  .dl.demo p.note a { color: #2f568a; }
   .dl .badge { display: none; font-size: .72rem; font-weight: 700; letter-spacing: .05em;
     color: var(--accent-dark); text-transform: uppercase; margin-bottom: .4rem; }
   .dl.suggested .badge { display: block; }
@@ -93,6 +101,12 @@
       <p class="note">Standard .deb package — install with your package manager.</p>
     </div>
   </div>
+
+  <div class="dl demo">
+    <h2>Sample data</h2>
+    <a class="button" href="https://github.com/jaymoran103/happycamper-heart/releases/latest/download/HappyCamper-demo-data.zip">Download demo rosters</a>
+    <p class="note">Want to try it without your own data? Grab a set of example rosters to explore.</p>
+  </div>
   <footer>
   </footer>
   <footer>
@@ -123,7 +137,7 @@
       var v = (d.tag_name || "").replace(/^v/, "");
       if (!v) return;
       document.getElementById("version").textContent = "Version " + v;
-      document.querySelectorAll(".dl a.button").forEach(function (a) {
+      document.querySelectorAll(".dl:not(.demo) a.button").forEach(function (a) {
         a.textContent = "Download v" + v;
       });
     })

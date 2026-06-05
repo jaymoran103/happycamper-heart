@@ -1,0 +1,55 @@
+=====================================================
+ HappyCamper — Sample Data
+=====================================================
+
+These folders contain sample rosters for exploring HappyCamper without your own data. 
+Each folder holds a matched pair of files:
+
+  - Camper roster (User Report)
+  - Activity roster (Elective Report)
+
+To use them: open HappyCamper, select import, and choose the two files from the same folder.
+
+
+
+-----------------------------------------------------
+ 1-single-cabin
+-----------------------------------------------------
+A single cabin with fields for all main features. 
+Data has each type of issue HappyCamper is designed to detect:
+
+- Camper with incomplete activity count
+- Campers with unrequested activities
+- Campers with swim level mismatches
+
+Try isolating specific concerns using the filters sidebar.
+
+-----------------------------------------------------
+ 2-full-session
+-----------------------------------------------------
+Real (anonymized) data from session 6, 2024. 
+This session had a large number of campers, all of whom were successfully assigned 3 activities.
+
+This pair is good for exploring:
+
+- The preference feature: given the high volume of campers and odd camptivity lineup, there's high 
+variation in preference satisfaction. To see more of stats, use the 'Column Visibility' menu in from the top bar.
+
+- Program name standardization: Source data distinguishes between Outpost and its All-Gender section (Campminder 
+necessitated this for registration purposes.) HappyCamper normalizes this, so the Outpost cohort can be treated as
+a single group.
+
+-----------------------------------------------------
+ 3-full-session-flaws
+-----------------------------------------------------
+
+Same data set as session 6, doctored to introduce activity gaps for happycamper to catch. Note that outpost is treated as 
+a mixed session due to mismatch between camper activity counts, while the basic traditional camp program retains the
+same 3 round statusde as before.
+
+
+
+-----------------------------------------------------
+All names and data are fictional, or anonymized using the following tool: https://github.com/jaymoran103/nameswap
+
+For more info, contact jaymorandev@gmail.com
