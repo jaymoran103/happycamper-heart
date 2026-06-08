@@ -33,6 +33,11 @@ public class HelpDialog extends CardDialog{
         setupCards();
         switchStateIfAllowed(0);
         setResizable(true);
+
+        //Size the dialog to fit its tallest card (each card's preferred height is capped in buildCard,
+        //so oversized pages scroll instead of growing the dialog), then re-center on the parent.
+        pack();
+        setLocationRelativeTo(_parent);
     }
 
     /**
