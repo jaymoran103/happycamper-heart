@@ -10,7 +10,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.JTableHeader;
 
 import com.echo.domain.Camper;
 import com.echo.domain.EnhancedRoster;
@@ -43,9 +42,7 @@ public class RosterTable extends JPanel {
         rowSorter.setMaxSortKeys(1); // Single-column sort, so the arrow always reflects the one active sort
         table.setRowSorter(rowSorter);
 
-        // Decorate the header with a sort direction arrow on the currently sorted column
-        JTableHeader header = table.getTableHeader();
-        header.setDefaultRenderer(new SortArrowHeaderRenderer(header.getDefaultRenderer()));
+        // Sort direction arrows are added by TableLook.doHeaderLook, which installs the header renderer
 
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);

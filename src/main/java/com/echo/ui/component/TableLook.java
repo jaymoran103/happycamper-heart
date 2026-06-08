@@ -27,7 +27,7 @@ public class TableLook {
         header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         header.setToolTipText(TextConstants.TABLE_HEADER_TOOLTIP);
 
-        header.setDefaultRenderer(new DefaultTableCellRenderer() {
+        DefaultTableCellRenderer baseLook = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
@@ -38,7 +38,12 @@ public class TableLook {
                 headerLabel.setOpaque(true);
                 return headerLabel;
             }
-        });
+        };
+
+        // Wrap the styled renderer so the sorted column shows its direction arrow.
+        // The wrap must happen here: this method runs on every table structure change,
+        // and installing a bare renderer would discard the arrow decoration.
+        header.setDefaultRenderer(new SortArrowHeaderRenderer(baseLook));
     }
 
     /**
