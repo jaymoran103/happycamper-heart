@@ -47,7 +47,7 @@ a single group.
  3-full-session-gaps
 -----------------------------------------------------
 
-Same data set as session 6, doctored to introduce activity gaps for happycamper to catch. Note that outpost is treated as 
+Same data set as 2-full-session, with the activity roster doctored to introduce activity gaps for happycamper to catch. Note that outpost is treated as 
 a mixed session due to mismatch between camper activity counts, while the basic traditional camp program retains the
 same 3 round statusde as before.
 
