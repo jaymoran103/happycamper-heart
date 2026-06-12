@@ -151,6 +151,10 @@ public class FilterManager {
         if (roster.hasFeature("preference")) {
             addFilter(new PreferenceFilter());
         }
+        if (roster.hasFeature("activity")) {
+            // B2: bespoke multi-select OR + round-scope + demand-sort filter
+            addFilter(new ActivityFilter());
+        }
         if (roster.hasFeature("swimlevel")) {
             // C1: one feature gate produces two independent filters/columns
             addFilter(new SwimLevelFilter());
@@ -167,32 +171,33 @@ public class FilterManager {
      * @param component Any component in the UI hierarchy
      */
     public static void updateTable(Component component) {
-        //System.out.println("FilterManager.updateTable called");
+        RosterTable table = findRosterTable(component);
+        if (table != null) {
+            table.applyFilters();
+        }
+    }
 
+    /**
+     * Locates the RosterTable in the same window as the given component.
+     *
+     * @param component any component in the UI hierarchy
+     * @return the RosterTable, or null if not found
+     */
+    public static RosterTable findRosterTable(Component component) {
         // Find the root window
         Component root = component;
         while (root != null && !(root instanceof JFrame)) {
             root = root.getParent();
         }
 
-        if (root instanceof JFrame) {
-            //System.out.println("Found root JFrame");
-            JFrame frame = (JFrame) root;
+        if (root instanceof JFrame frame) {
             for (Component c : frame.getContentPane().getComponents()) {
-                //System.out.println("Checking component: " + c.getClass().getName());
-                if (c instanceof JSplitPane) {
-                    JSplitPane splitPane = (JSplitPane) c;
-                    Component rightComponent = splitPane.getRightComponent();
-                    //System.out.println("Right component: " + rightComponent.getClass().getName());
-                    if (rightComponent instanceof RosterTable) {
-                        //System.out.println("Found RosterTable, applying filters");
-                        ((RosterTable) rightComponent).applyFilters();
-                        break;
-                    }
+                if (c instanceof JSplitPane splitPane
+                        && splitPane.getRightComponent() instanceof RosterTable rosterTable) {
+                    return rosterTable;
                 }
             }
-        } else {
-            //System.out.println("Could not find root JFrame");
         }
+        return null;
     }
 }

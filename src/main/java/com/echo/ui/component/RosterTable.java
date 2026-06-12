@@ -33,6 +33,11 @@ public class RosterTable extends JPanel {
     // B1: optional callback fired after the visible row set changes, so a status bar can refresh.
     private Runnable onTableUpdated;
 
+    // B2: optional derived ordering for the visible campers (the demand sort). When set, the filtered
+    // rows are pre-ordered by this comparator; pairing it with empty RowSorter keys yields a sort with
+    // no column header and no arrow. A column-header click re-establishes sort keys and overrides it.
+    private java.util.Comparator<Camper> camperOrdering;
+
     /**
      * Creates a new RosterTable.
      */
@@ -178,6 +183,17 @@ public class RosterTable extends JPanel {
      */
     public int getSelectedCount() {
         return table.getSelectedRowCount();
+    }
+
+    /**
+     * Sets the derived ordering for the visible campers (B2 demand sort), or null for natural order.
+     * Callers should also clear the RowSorter sort keys so the model order shows through without a
+     * column arrow. Takes effect on the next {@link #applyFilters()}.
+     *
+     * @param camperOrdering comparator over campers, or null to restore roster order
+     */
+    public void setCamperOrdering(java.util.Comparator<Camper> camperOrdering) {
+        this.camperOrdering = camperOrdering;
     }
 
     /**
@@ -364,13 +380,9 @@ public class RosterTable extends JPanel {
                 }
             }
 
-            // B2: apply a derived ordering (e.g. demand sort) when the active filter set supplies one.
-            // Pairing the pre-ordered model with empty RowSorter keys yields a sort with no column
-            // header and no arrow; a column click re-establishes sort keys and overrides this order.
-            java.util.Comparator<Camper> ordering =
-                    filterManager == null ? null : filterManager.getActiveOrdering();
-            if (ordering != null) {
-                filteredCampers.sort(ordering);
+            // B2: apply the demand-sort ordering when one is set
+            if (camperOrdering != null) {
+                filteredCampers.sort(camperOrdering);
             }
         }
 

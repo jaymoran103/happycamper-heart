@@ -25,8 +25,11 @@ import javax.swing.event.DocumentListener;
 import com.echo.HappyCamper;
 import com.echo.automation.TestPreset;
 import com.echo.domain.EnhancedRoster;
+import com.echo.filter.ActivityFilter;
 import com.echo.filter.FilterManager;
 import com.echo.filter.TextSearchFilter;
+import com.echo.service.ActivityCatalog;
+import com.echo.service.DemandSort;
 import com.echo.service.RosterService;
 import com.echo.service.ViewStateSummary;
 import com.echo.ui.component.RosterTable;
@@ -60,9 +63,14 @@ public class MainWindow extends JFrame {
     // B1: universal search (top-right) + shared view-state status bar (south)
     private final JTextField searchField = new JTextField(16);
     private final JComboBox<String> scopeCombo = new JComboBox<>();
+    private final JComboBox<String> demandSortCombo = new JComboBox<>();
     private final ViewStatusBar viewStatusBar = new ViewStatusBar(this::handleReset);
-    // Suppresses search re-application while the scope combo is being repopulated programmatically.
+    // Suppresses re-application while the scope / demand-sort combos are repopulated programmatically.
     private boolean suppressSearchEvents = false;
+    // B2: the activity currently chosen for demand sort, or null for None.
+    private String demandSortActivity = null;
+
+    private static final String DEMAND_SORT_NONE = "None";
 
     /**
      * Creates a new MainWindow with the given roster service.
@@ -181,6 +189,11 @@ public class MainWindow extends JFrame {
     private JPanel createSearchPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
+        // B2: demand-sort control, parallel to search (separate from the Activity restrict filter)
+        panel.add(new JLabel("Sort by demand:"));
+        panel.add(demandSortCombo);
+        demandSortCombo.addActionListener(e -> handleDemandSortChange());
+
         panel.add(new JLabel("Search:"));
         panel.add(scopeCombo);
         panel.add(searchField);
@@ -226,6 +239,45 @@ public class MainWindow extends JFrame {
         }
     }
 
+    /**
+     * Applies the top-bar demand-sort selection (B2): orders campers by preference rank for the chosen
+     * activity, or clears the ordering when "None". Independent of the Activity restrict filter.
+     */
+    private void handleDemandSortChange() {
+        if (suppressSearchEvents) {
+            return;
+        }
+        Object selected = demandSortCombo.getSelectedItem();
+        String activity = (selected == null || DEMAND_SORT_NONE.equals(selected)) ? null : selected.toString();
+        demandSortActivity = activity;
+
+        if (activity == null) {
+            rosterTable.setCamperOrdering(null);
+        } else {
+            rosterTable.setCamperOrdering(DemandSort.comparator(activity));
+            // Entering a demand sort clears any active column sort (and its arrow)
+            rosterTable.getRowSorter().setSortKeys(Collections.emptyList());
+        }
+        rosterTable.applyFilters();
+    }
+
+    /** Populates the demand-sort selector with None + each catalog activity. */
+    private void populateDemandSortCombo() {
+        suppressSearchEvents = true;
+        try {
+            demandSortCombo.removeAllItems();
+            demandSortCombo.addItem(DEMAND_SORT_NONE);
+            for (String activity : ActivityCatalog.build(currentRoster)) {
+                demandSortCombo.addItem(activity);
+            }
+            demandSortCombo.setSelectedItem(DEMAND_SORT_NONE);
+        } finally {
+            suppressSearchEvents = false;
+        }
+        demandSortActivity = null;
+        rosterTable.setCamperOrdering(null);
+    }
+
     /** Recomposes and displays the shared view-state status line. */
     private void refreshViewStatus() {
         if (currentRoster == null) {
@@ -239,6 +291,18 @@ public class MainWindow extends JFrame {
                 ? null : (TextSearchFilter) filterManager.getFilter("textsearch");
         if (search != null) {
             summary.setSearch(search.getSearchTerm(), search.getScopeLabel());
+        }
+
+        // B2: activity restrict segment (the filter) — independent of the demand sort
+        ActivityFilter activity = filterManager == null
+                ? null : (ActivityFilter) filterManager.getFilter("activity-select");
+        if (activity != null && !activity.getSelectedActivities().isEmpty()) {
+            summary.setActivity(activity.getActivitySummary(), activity.getRoundLabel(), false);
+        }
+
+        // B2: demand-sort segment (the top-bar control)
+        if (demandSortActivity != null) {
+            summary.setSort("demand for " + demandSortActivity);
         }
 
         viewStatusBar.setStatusText(summary.compose());
@@ -256,6 +320,13 @@ public class MainWindow extends JFrame {
         if (scopeCombo.getItemCount() > 0) {
             scopeCombo.setSelectedIndex(0);
         }
+
+        // Clear the demand sort (B2)
+        suppressSearchEvents = true;
+        demandSortCombo.setSelectedItem(DEMAND_SORT_NONE);
+        suppressSearchEvents = false;
+        demandSortActivity = null;
+        rosterTable.setCamperOrdering(null);
 
         // Rebuild filters from scratch (resets every sidebar filter to its default state)
         filterManager.createFiltersForRoster(currentRoster);
@@ -348,8 +419,9 @@ public class MainWindow extends JFrame {
         //System.out.println("MainWindow.setRoster: Creating filter sidebar");
         rebuildSidebar();
 
-        // B1: populate search scopes for this roster and reveal the status bar
+        // B1/B2: populate search scopes + demand-sort activities for this roster, reveal the status bar
         populateScopeCombo();
+        populateDemandSortCombo();
         viewStatusBar.setVisible(true);
 
         // Show the split pane and hide the welcome panel

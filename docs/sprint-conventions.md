@@ -20,15 +20,27 @@ entry names what bent, where, and why it's safe.
 - **Why safe:** the core gate convention is intact (still keyed on `hasFeature("swimlevel")`); only the
   cardinality changed. The swim-lessons activity is the literal string `"Swimming"`; level `Red` = 0.
 
-## B2 — a filter that also drives a sort (the outlier)
-- **Where:** `ActivityFilter`.
-- **Bend (threefold):** (1) a *compound OR subject-selector* (multi-select activity set) rather than a
-  uniform visibility toggle; (2) a filter that *also drives table ordering* (demand mode); (3) it
-  introduces a **non-visible numeric helper column** used solely as a sort key (no header, no arrow).
-- **Subtlety:** demand rank uses the activity's **original** preference rank (`indexOf+1` in the raw
-  "Activity Preferences" list), NOT its compacted position in the Unfulfilled Preferences column.
-- **Why safe:** restrict (which campers) and order (demand) are one coherent mode; the hidden column
-  reuses the existing `CustomTableRowSorter` NUMERIC path verbatim.
+## B2 — Activity filter + demand sort (two separate controls)
+- **Where:** `ActivityFilter` + `ui.filter.ActivityFilterPanel` (the restrict filter); `service.DemandSort`
+  + the top-bar combo in `MainWindow` (the sort); `RosterTable.setCamperOrdering` (model-level ordering hook).
+- **Design history:** an earlier version conflated these into one "filter that also drives a sort" — a
+  multi-select set with a demand toggle and chip UI. It was confusing and convention-breaking and was
+  **scrapped**. They are now two independent, clearly-labeled controls that compose freely.
+- **Control 1 — Activity filter:** a conventional multi-select visibility filter (checkbox list + a
+  Round-scope combo). A camper passes iff *assigned* any selected activity within the round scope. No
+  chips, no sort — no longer an outlier.
+- **Control 2 — Demand sort:** a top-bar `Sort by demand for: [activity]` control. Orders campers by their
+  **original** preference rank for the one chosen activity (`indexOf+1` in the raw "Activity Preferences"
+  list; non-wanters sort last). A pure sort — it hides no one.
+- **Remaining bend — derived sort with no column/arrow:** the demand sort has no backing table column.
+  `RosterTable.updateModel` pre-orders the filtered list with an optional `Comparator<Camper>`
+  (`setCamperOrdering`); selecting a demand activity clears the RowSorter sort keys so there is no arrow.
+  A column-header click re-establishes sort keys and the RowSorter overrides the model order.
+- **Known prototype limitation:** the status bar's "Sorted by: demand for …" label persists even if the
+  user then clicks a column header (the column arrow is the accurate cue); a RowSorter listener to
+  retitle the segment was left out.
+- **Why safe:** the filter is now a plain filter; the sort is a pure comparator over campers that mutates
+  no roster data. Neither depends on the other.
 
 ## D1 — aggregate reports + derived activity catalog
 - **Where:** `PreferenceReportData`.

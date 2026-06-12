@@ -43,7 +43,7 @@ public class ActivityFeature implements RosterFeature {
     private static final String FEATURE_NAME = "Activity Assignments";
 
     /** Maximum number of rounds supported by the application */
-    static final int MAX_ROUNDS = 3;
+    public static final int MAX_ROUNDS = 3;
 
     /** Header for the count of rounds assigned to a camper */
     private static final String ROUNDS_ASSIGNED_HEADER = RosterHeader.ROUND_COUNT.standardName;

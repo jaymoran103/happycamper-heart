@@ -119,7 +119,7 @@ public class PreferenceFeatureUtils {
      * @param preferences The raw preference string from the camper's data
      * @return A list of individual preference strings, each trimmed of whitespace
      */
-    static List<String> parsePreferenceField(String preferences) {
+    public static List<String> parsePreferenceField(String preferences) {
 
         // Split the preferences string into individual preferences and trim whitespace
         String[] preferencesArray = preferences.split(",");
