@@ -2,7 +2,6 @@ package com.echo.ui.filter;
 
 import java.awt.Component;
 import java.awt.FlowLayout;
-import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
@@ -34,6 +33,9 @@ public class ActivityFilterPanel {
 
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        // Match the shared expanded-panel tone used by FilterPanelFactory; this panel is hand-built
+        // and would otherwise inherit the lighter default panel color.
+        content.setBackground(FilterSidebar.FILTER_COLOR_EXPANDED);
 
         // Round scope: index 0 = Any (ROUND_ANY), 1..3 = that round
         JComboBox<String> roundCombo = new JComboBox<>(new String[] {"Any", "R1", "R2", "R3"});
@@ -43,6 +45,7 @@ public class ActivityFilterPanel {
             panel.notifyFilterChanged();
         });
         JPanel roundRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
+        roundRow.setBackground(FilterSidebar.FILTER_COLOR_EXPANDED);
         roundRow.add(new JLabel("Round:"));
         roundRow.add(roundCombo);
         content.add(leftAligned(roundRow));
@@ -50,6 +53,7 @@ public class ActivityFilterPanel {
         // Plain checkbox list of catalog activities (no scroll pane; the sidebar scrolls)
         for (String activity : ActivityCatalog.build(roster)) {
             JCheckBox box = new JCheckBox(activity);
+            box.setBackground(FilterSidebar.FILTER_COLOR_EXPANDED);
             box.setSelected(filter.getSelectedActivities().contains(activity));
             box.addActionListener(e -> {
                 if (box.isSelected()) {
@@ -68,6 +72,7 @@ public class ActivityFilterPanel {
 
     private static JPanel leftAligned(Component c) {
         JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+        wrapper.setBackground(FilterSidebar.FILTER_COLOR_EXPANDED);
         wrapper.add(c);
         return wrapper;
     }

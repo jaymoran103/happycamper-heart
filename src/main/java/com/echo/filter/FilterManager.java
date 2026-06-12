@@ -2,7 +2,7 @@ package com.echo.filter;
 
 import java.awt.Component;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.swing.JFrame;
@@ -17,7 +17,8 @@ import com.echo.ui.component.RosterTable;
  * Handles applying multiple filters to campers.
  */
 public class FilterManager {
-    private final Map<String, RosterFilter> filters = new HashMap<>();
+    // LinkedHashMap so iteration (and thus sidebar display order) follows insertion order below.
+    private final Map<String, RosterFilter> filters = new LinkedHashMap<>();
     private EnhancedRoster roster;
 
     /**
@@ -144,6 +145,8 @@ public class FilterManager {
         // B1: universal search is always-on (the only non-feature-gated filter; see docs/sprint-conventions.md)
         addFilter(new TextSearchFilter());
 
+        // Sidebar display order follows insertion order (LinkedHashMap). The two swim filters sit
+        // between the general filters and the Activity Selector, which is pinned to the bottom.
         if (roster.hasFeature("program")){
             addFilter(new SortedProgramFilter());
             // addFilter(new CamperRoundsFilter()); Disabling, redundant now
@@ -151,14 +154,13 @@ public class FilterManager {
         if (roster.hasFeature("preference")) {
             addFilter(new PreferenceFilter());
         }
-        if (roster.hasFeature("activity")) {
-            // B2: bespoke multi-select OR + round-scope + demand-sort filter
-            addFilter(new ActivityFilter());
-        }
         if (roster.hasFeature("swimlevel")) {
             // C1: one feature gate produces two independent filters/columns
             addFilter(new SwimLevelFilter());
             addFilter(new SwimLessonFilter());
+        }
+        if (roster.hasFeature("activity")) {
+            addFilter(new ActivityFilter());
         }
 
 

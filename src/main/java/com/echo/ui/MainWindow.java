@@ -60,6 +60,11 @@ public class MainWindow extends JFrame {
     private final RosterTable rosterTable;
     private final JPanel controlPanel;
 
+    // Control-bar buttons that require a displayed roster; disabled until setRoster() runs.
+    private JButton exportButton;
+    private JButton viewSettingsButton;
+    private JButton columnVisibilityButton;
+
     // B1: universal search (top-right) + shared view-state status bar (south)
     private final JTextField searchField = new JTextField(16);
     private final JComboBox<String> scopeCombo = new JComboBox<>();
@@ -157,17 +162,23 @@ public class MainWindow extends JFrame {
         JButton importButton = new HoverButton("Import");
         importButton.addActionListener(this::handleImport);
 
-        JButton exportButton = new HoverButton("Export");
+        exportButton = new HoverButton("Export");
         exportButton.addActionListener(this::handleExport);
 
-        JButton viewSettingsButton = new HoverButton("View Settings");
+        viewSettingsButton = new HoverButton("View Settings");
         viewSettingsButton.addActionListener(this::handleViewSettings);
 
-        JButton columnVisibilityButton = new HoverButton("Column Visibility");
+        columnVisibilityButton = new HoverButton("Column Visibility");
         columnVisibilityButton.addActionListener(this::handleColumnVisibility);
 
         JButton tutorialButton = new HoverButton("Help");
         tutorialButton.addActionListener(this::handleTutorial);
+
+        // Roster-dependent controls stay disabled until a roster is displayed (see setRoster).
+        // Import and Help remain enabled at all times.
+        exportButton.setEnabled(false);
+        viewSettingsButton.setEnabled(false);
+        columnVisibilityButton.setEnabled(false);
 
         buttonPanel.add(importButton);
         buttonPanel.add(exportButton);
@@ -390,6 +401,11 @@ public class MainWindow extends JFrame {
      */
     public void setRoster(EnhancedRoster roster) {
         this.currentRoster = roster;
+
+        // A roster is now displayed: enable the controls that act on it.
+        exportButton.setEnabled(true);
+        viewSettingsButton.setEnabled(true);
+        columnVisibilityButton.setEnabled(true);
 
         // Create filter manager and set up filters
         //System.out.println("MainWindow.setRoster: Creating filter manager");
