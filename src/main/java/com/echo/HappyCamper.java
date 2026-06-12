@@ -18,8 +18,19 @@ public class HappyCamper {
     public static String NAME_VERSION = NAME+" "+VERSION;
 
     private static String readVersion() {
+        // Packaged jar: manifest Implementation-Version (strip -SNAPSHOT if present)
         String v = HappyCamper.class.getPackage().getImplementationVersion();
-        return (v != null) ? v : "dev";
+        if (v != null) return v.replace("-SNAPSHOT", "");
+        // IDE / unpackaged: filtered resource (retains -SNAPSHOT as a dev signal)
+        try (var in = HappyCamper.class.getResourceAsStream("/version.properties")) {
+            if (in != null) {
+                var props = new java.util.Properties();
+                props.load(in);
+                v = props.getProperty("version");
+                if (v != null) return v;
+            }
+        } catch (Exception ignored) {}
+        return "dev";
     }
 
     public static boolean WAIT_TO_AUTOMATE = false;

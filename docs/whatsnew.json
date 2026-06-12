@@ -1,0 +1,12 @@
+{
+  "label": "v2.3",
+  "items": [
+    "Versatile search bar",
+    "Report for activity stats",
+    "Sort by activity demand",
+    "Filter by activity assignments",
+    "Filter for swim lesson mismatches",
+    "Column for unfulfilled preferences",
+    "Display status in footer, with reset button"
+  ]
+}
