@@ -47,19 +47,25 @@ public final class ActivityReportData {
             acc.put(activity, new int[7]);
         }
 
+        // Iterate through each camper, accumulating data for each activity
         for (Camper camper : roster.getCampers()) {
+
+            // Get the preference field for the camper, with a fallback to an empty list
             String prefField = camper.getValue(RosterHeader.PREFERENCES.standardName);
             List<String> prefs = DataConstants.isEmpty(prefField)
-                    ? new ArrayList<>() : PreferenceFeatureUtils.parsePreferenceField(prefField);
+                ? new ArrayList<>() : PreferenceFeatureUtils.parsePreferenceField(prefField);
 
+            // Get each activity assignment for the camper
             String[] assignments = new String[ActivityFeature.MAX_ROUNDS];
             for (int i = 0; i < ActivityFeature.MAX_ROUNDS; i++) {
                 assignments[i] = ActivityFeature.getActivityForCamper(camper, i + 1);
             }
 
-            // Enrollment counts
+            // Determine enrollment counts, finding matches between assignments and 
+            // activity catalog, and incrementing the appropriate round counter
             for (int i = 0; i < ActivityFeature.MAX_ROUNDS; i++) {
                 String a = assignments[i];
+                // Check if the activity is in the catalog and not empty, then increment the appropriate round counter
                 if (!DataConstants.isEmpty(a) && acc.containsKey(a)) {
                     acc.get(a)[i]++; // r1=0, r2=1, r3=2
                 }
@@ -74,6 +80,7 @@ public final class ActivityReportData {
                 int rank = i + 1;
                 boolean enrolled = isAssigned(assignments, activity);
                 int[] a = acc.get(activity);
+                // Check if the activity is in the catalog and not empty, then update the preference rank contributions
                 if (enrolled) {
                     a[3] += rank; // rankInSum
                     a[4]++;       // rankInCount
@@ -84,6 +91,8 @@ public final class ActivityReportData {
             }
         }
 
+        // Build the list of activity rows for the report.
+        // acculumlated rank sums are divided by total counts, determining the average rank for each activity.
         List<ActivityRow> rows = new ArrayList<>();
         for (String activity : catalog) {
             int[] a = acc.get(activity);
@@ -94,6 +103,8 @@ public final class ActivityReportData {
         return rows;
     }
 
+    // Helper method checks if an activity is assigned to a camper.
+    // Used to determine if a camper's preference stats go toward the "In" or "Out" calculation.
     private static boolean isAssigned(String[] assignments, String activity) {
         for (String a : assignments) {
             if (activity.equals(a)) return true;

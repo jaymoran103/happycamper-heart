@@ -220,7 +220,7 @@ public class SwimLevelFeatureTest {
         Map<String, String> camperData = new HashMap<>();
         camperData.put(RosterHeader.FIRST_NAME.camperRosterName, "John");
         camperData.put(RosterHeader.LAST_NAME.camperRosterName, "Doe");
-        camperData.put(RosterHeader.SWIMCOLOR.camperRosterName, "White");
+        camperData.put(RosterHeader.SWIMCOLOR.camperRosterName, "Red");
         camperData.put(RosterHeader.buildRoundString(1), "Sailing");
         camperData.put(RosterHeader.buildRoundString(2), "Archery");
         Camper camper = new Camper(camperData);

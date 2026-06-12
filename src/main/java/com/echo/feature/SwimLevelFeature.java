@@ -77,7 +77,7 @@ public class SwimLevelFeature implements RosterFeature {
         
         //Map activities to integers representing minimum swim level
         Map<String, Integer> defaultActivityRequirements = new HashMap<>();
-        defaultActivityRequirements.put("Sailing", 2);
+        defaultActivityRequirements.put("Sailing", 1);
 
         defaultActivityRequirements.put("Paddlesports",1);
         defaultActivityRequirements.put("Paddle Sports",1);
@@ -85,7 +85,7 @@ public class SwimLevelFeature implements RosterFeature {
         defaultActivityRequirements.put("Skiing",1);
         defaultActivityRequirements.put("Waterskiing",1);
 
-        defaultActivityRequirements.put("Gold Swimming", 2);
+        defaultActivityRequirements.put("Gold Swimming", 2);// Should be the only one that truly requires blue swimmers
         defaultActivityRequirements.put("Mermaids", 1);
         
         //Unique in that participants should only be level 0. This is currently enforced by the swim lessons check, distinct from the aquatic conflict check.
