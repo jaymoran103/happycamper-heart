@@ -78,24 +78,37 @@ public class SwimLevelFeature implements RosterFeature {
         //Map activities to integers representing minimum swim level
         Map<String, Integer> defaultActivityRequirements = new HashMap<>();
         defaultActivityRequirements.put("Sailing", 2);
+
         defaultActivityRequirements.put("Paddlesports",1);
         defaultActivityRequirements.put("Paddle Sports",1);
 
-        defaultActivityRequirements.put("Skiing",2);
+        defaultActivityRequirements.put("Skiing",1);
+        defaultActivityRequirements.put("Waterskiing",1);
+
         defaultActivityRequirements.put("Gold Swimming", 2);
+        defaultActivityRequirements.put("Mermaids", 1);
+        
+        //Unique in that participants should only be level 0. This is currently enforced by the swim lessons check, distinct from the aquatic conflict check.
+        defaultActivityRequirements.put("Swimming",0);
 
         //Non-swimming activities shouldnt need mapping like this, but it makes the requirement warnings more helpful with a shorter list of unknowns
         defaultActivityRequirements.put("Archery",0);
         defaultActivityRequirements.put("Arts & Crafts",0);
+        defaultActivityRequirements.put("Arts and Crafts",0);
         defaultActivityRequirements.put("Biking", 0);
+        defaultActivityRequirements.put("Bouldering",0);//This set of 4 should cover us, god knows what it'll be by the end of the summer
+        defaultActivityRequirements.put("Climbing",0);
         defaultActivityRequirements.put("Challenge",0);
+        defaultActivityRequirements.put("Challenge Course",0);
         defaultActivityRequirements.put("Dance",0);
         defaultActivityRequirements.put("Drama",0);
         defaultActivityRequirements.put("Horseback Riding",0);
         defaultActivityRequirements.put("Fishing",0);
         defaultActivityRequirements.put("Friendship Bracelet",0);
+        defaultActivityRequirements.put("Music",0);
         defaultActivityRequirements.put("Nature",0);
         defaultActivityRequirements.put("Sports",0);
+
         return defaultActivityRequirements;
     }
 

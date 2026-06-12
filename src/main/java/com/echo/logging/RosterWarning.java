@@ -43,7 +43,8 @@ public class RosterWarning {
         BAD_DATA_FORMAT(
             "Some data didn't match the expected format for its column",
             "The program can continue, but some data might look weird",
-            new String[]{"Camper","Column","Value","Format (RegEx)"}
+            new String[]{"Camper","Column","Value"}// Remove the format from the display cells for cleaner output in v2.3.0
+            // new String[]{"Camper","Column","Value","Format (RegEx)"}
         ),
         PROGRAM_PARSING_FAILURE(
             "Failed to find program(s) for the selected session",
@@ -57,7 +58,7 @@ public class RosterWarning {
         ),
         CAMPER_MISSING_FIELD(
             "Camper data was missing a field required by a selected feature",
-            "The feature can continue, but must skip this camper.",
+            "The feature can still be applied, but not to the camper(s) with missing data.",
             new String[]{"Camper","Missing Field","Required For Feature:"}
         ),
         UNKNOWN_SWIM_ACTIVITY_FLAGGED(
@@ -195,7 +196,9 @@ public class RosterWarning {
     public static RosterWarning create_badDataFormat(Map<String,String> dataRow, String column, String format) {
         String camperName = buildNameString(dataRow);
         String field = dataRow.getOrDefault(column, "No Data");
-        String[] displayCells = new String[]{camperName,column,field,format};
+        String[] displayCells = new String[]{camperName,column,field};// Remove the format from the display cells for cleaner output in v2.3.0
+        // String[] displayCells = new String[]{camperName,column,field,format};
+
         return new RosterWarning(WarningType.BAD_DATA_FORMAT,displayCells);
     }
 
