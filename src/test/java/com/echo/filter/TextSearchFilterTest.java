@@ -3,6 +3,7 @@ package com.echo.filter;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,6 +94,23 @@ public class TextSearchFilterTest {
         assertTrue(filter.apply(camper));
         filter.setSearchTerm("cHiB");
         assertTrue(filter.apply(camper));
+    }
+
+    @Test
+    @DisplayName("All Columns scope searches the supplied visible-column set")
+    public void testAllColumnsScope() {
+        // MainWindow drives "All Columns" by passing the current visible headers
+        filter.setScopeFields(TextSearchFilter.SCOPE_ALL_COLUMNS,
+                java.util.List.of(RosterHeader.LAST_NAME.standardName, RosterHeader.ROUND_1.standardName));
+
+        filter.setSearchTerm("bald");   // Last Name
+        assertTrue(filter.apply(camper));
+        filter.setSearchTerm("sailing"); // Round 1
+        assertTrue(filter.apply(camper));
+        filter.setSearchTerm("archery"); // Round 2 — not in the supplied set
+        assertFalse(filter.apply(camper));
+
+        assertEquals(TextSearchFilter.SCOPE_ALL_COLUMNS, filter.getScopeLabel());
     }
 
     @Test

@@ -61,6 +61,8 @@ public class MainWindow extends JFrame {
     private final JTextField searchField = new JTextField(16);
     private final JComboBox<String> scopeCombo = new JComboBox<>();
     private final ViewStatusBar viewStatusBar = new ViewStatusBar(this::handleReset);
+    // Suppresses search re-application while the scope combo is being repopulated programmatically.
+    private boolean suppressSearchEvents = false;
 
     /**
      * Creates a new MainWindow with the given roster service.
@@ -196,19 +198,32 @@ public class MainWindow extends JFrame {
 
     /** Pushes the current search field/scope into the always-on TextSearchFilter and refreshes the table. */
     private void handleSearchChange() {
-        if (filterManager == null) {
+        if (filterManager == null || suppressSearchEvents) {
             return;
         }
+        applySearchScope();
+        rosterTable.applyFilters(); // fires refreshViewStatus via the table-update callback
+    }
+
+    /** Reads the search field + scope combo into the TextSearchFilter (no table refresh). */
+    private void applySearchScope() {
         TextSearchFilter search = (TextSearchFilter) filterManager.getFilter("textsearch");
         if (search == null) {
             return;
         }
         search.setSearchTerm(searchField.getText());
+
         Object scope = scopeCombo.getSelectedItem();
-        if (scope != null) {
-            search.setScope(scope.toString());
+        if (scope == null) {
+            return;
         }
-        rosterTable.applyFilters(); // fires refreshViewStatus via the table-update callback
+        String label = scope.toString();
+        if (TextSearchFilter.SCOPE_ALL_COLUMNS.equals(label)) {
+            // "All Columns" searches every currently-visible column (respects visibility)
+            search.setScopeFields(label, currentRoster.getOrderedVisibleHeaders());
+        } else {
+            search.setScope(label); // named preset or a single per-column header
+        }
     }
 
     /** Recomposes and displays the shared view-state status line. */
@@ -217,7 +232,8 @@ public class MainWindow extends JFrame {
             return;
         }
         ViewStateSummary summary = new ViewStateSummary()
-                .setCounts(rosterTable.getVisibleCount(), rosterTable.getTotalCount());
+                .setCounts(rosterTable.getVisibleCount(), rosterTable.getTotalCount())
+                .setSelectedCount(rosterTable.getSelectedCount());
 
         TextSearchFilter search = filterManager == null
                 ? null : (TextSearchFilter) filterManager.getFilter("textsearch");
@@ -261,15 +277,39 @@ public class MainWindow extends JFrame {
         sidebarPanel.repaint();
     }
 
-    /** Populates the search-scope selector with the two named presets plus each visible column. */
+    /**
+     * Populates the search-scope selector with "All Columns" (default), the two named presets, and each
+     * currently-visible column. Preserves the prior selection when that scope still exists; otherwise
+     * falls back to "All Columns". Repopulated whenever column visibility changes.
+     */
     private void populateScopeCombo() {
-        scopeCombo.removeAllItems();
-        scopeCombo.addItem(TextSearchFilter.SCOPE_ALL_NAMES);
-        scopeCombo.addItem(TextSearchFilter.SCOPE_ASSIGNED_ACTIVITIES);
-        for (String header : currentRoster.getOrderedVisibleHeaders()) {
-            scopeCombo.addItem(header);
+        String previous = (String) scopeCombo.getSelectedItem();
+
+        suppressSearchEvents = true; // avoid a flurry of re-applies while rebuilding the model
+        try {
+            scopeCombo.removeAllItems();
+            scopeCombo.addItem(TextSearchFilter.SCOPE_ALL_COLUMNS);
+            scopeCombo.addItem(TextSearchFilter.SCOPE_ALL_NAMES);
+            scopeCombo.addItem(TextSearchFilter.SCOPE_ASSIGNED_ACTIVITIES);
+            for (String header : currentRoster.getOrderedVisibleHeaders()) {
+                scopeCombo.addItem(header);
+            }
+            scopeCombo.setSelectedItem(comboContains(previous) ? previous : TextSearchFilter.SCOPE_ALL_COLUMNS);
+        } finally {
+            suppressSearchEvents = false;
         }
-        scopeCombo.setSelectedIndex(0);
+    }
+
+    private boolean comboContains(String item) {
+        if (item == null) {
+            return false;
+        }
+        for (int i = 0; i < scopeCombo.getItemCount(); i++) {
+            if (item.equals(scopeCombo.getItemAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -418,6 +458,11 @@ public class MainWindow extends JFrame {
         }
 
         rosterTable.showColumnVisibilityDialog();
+
+        // Column visibility may have changed — refresh the search scopes (and re-apply the active
+        // search, since "All Columns" / a per-column scope depends on which columns are visible).
+        populateScopeCombo();
+        handleSearchChange();
     }
 
     /**

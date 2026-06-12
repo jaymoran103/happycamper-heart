@@ -22,6 +22,7 @@ public class TextSearchFilter implements RosterFilter {
     private static final String FILTER_ID = "textsearch";
     public static final String FILTER_NAME = "Search";
 
+    public static final String SCOPE_ALL_COLUMNS = "All Columns";
     public static final String SCOPE_ALL_NAMES = "All Names";
     public static final String SCOPE_ASSIGNED_ACTIVITIES = "Assigned Activities";
 

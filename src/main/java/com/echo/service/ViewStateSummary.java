@@ -18,6 +18,7 @@ public class ViewStateSummary {
 
     private int visibleCount;
     private int totalCount;
+    private int selectedCount;
     private String searchTerm;
     private String searchScope;
     private String activitySummary;
@@ -28,6 +29,12 @@ public class ViewStateSummary {
     public ViewStateSummary setCounts(int visibleCount, int totalCount) {
         this.visibleCount = visibleCount;
         this.totalCount = totalCount;
+        return this;
+    }
+
+    /** @param selectedCount number of selected table rows; 0 omits the segment */
+    public ViewStateSummary setSelectedCount(int selectedCount) {
+        this.selectedCount = selectedCount;
         return this;
     }
 
@@ -66,6 +73,10 @@ public class ViewStateSummary {
     public String compose() {
         StringBuilder sb = new StringBuilder();
         sb.append("Showing ").append(visibleCount).append(" of ").append(totalCount).append(" campers");
+
+        if (selectedCount > 0) {
+            sb.append(SEP).append(selectedCount).append(" selected");
+        }
 
         if (!isBlank(searchTerm)) {
             sb.append(SEP).append("Search: \"").append(searchTerm.trim()).append("\"");

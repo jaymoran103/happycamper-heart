@@ -17,6 +17,27 @@ public class ViewStateSummaryServiceTest {
     }
 
     @Test
+    @DisplayName("Selected count segment appears only when > 0")
+    public void testSelectedCount() {
+        String none = new ViewStateSummary().setCounts(40, 40).setSelectedCount(0).compose();
+        assertEquals("Showing 40 of 40 campers", none);
+
+        String some = new ViewStateSummary().setCounts(40, 40).setSelectedCount(3).compose();
+        assertEquals("Showing 40 of 40 campers · 3 selected", some);
+    }
+
+    @Test
+    @DisplayName("Selected count sits between counts and search segments")
+    public void testSelectedCountOrdering() {
+        String s = new ViewStateSummary()
+                .setCounts(12, 40)
+                .setSelectedCount(2)
+                .setSearch("ar", null)
+                .compose();
+        assertEquals("Showing 12 of 40 campers · 2 selected · Search: \"ar\"", s);
+    }
+
+    @Test
     @DisplayName("Search segment renders with quoted term")
     public void testSearchSegment() {
         String s = new ViewStateSummary()

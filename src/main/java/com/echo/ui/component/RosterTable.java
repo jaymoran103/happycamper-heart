@@ -30,6 +30,9 @@ public class RosterTable extends JPanel {
     private final RosterTableModel tableModel;
     private final CustomTableRowSorter<RosterTableModel> rowSorter;
 
+    // B1: optional callback fired after the visible row set changes, so a status bar can refresh.
+    private Runnable onTableUpdated;
+
     /**
      * Creates a new RosterTable.
      */
@@ -47,7 +50,12 @@ public class RosterTable extends JPanel {
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
 
-
+        // B1: refresh the status bar (e.g. "N selected") when the row selection changes
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && onTableUpdated != null) {
+                onTableUpdated.run();
+            }
+        });
     }
 
     /**
@@ -136,6 +144,40 @@ public class RosterTable extends JPanel {
         configureColumnSorting();
 
         //System.out.println("RosterTable.applyFilters: Table model updated");
+
+        if (onTableUpdated != null) {
+            onTableUpdated.run();
+        }
+    }
+
+    /**
+     * Registers a callback fired after the visible row set changes (B1 status bar refresh).
+     *
+     * @param onTableUpdated callback, or null to clear
+     */
+    public void setOnTableUpdated(Runnable onTableUpdated) {
+        this.onTableUpdated = onTableUpdated;
+    }
+
+    /**
+     * @return the number of campers currently passing all filters (visible rows)
+     */
+    public int getVisibleCount() {
+        return tableModel.filteredCampers.size();
+    }
+
+    /**
+     * @return the total number of campers in the roster, ignoring filters
+     */
+    public int getTotalCount() {
+        return roster == null ? 0 : roster.getCampers().size();
+    }
+
+    /**
+     * @return the number of currently-selected table rows
+     */
+    public int getSelectedCount() {
+        return table.getSelectedRowCount();
     }
 
     /**
@@ -320,6 +362,15 @@ public class RosterTable extends JPanel {
                 if (passes) {
                     filteredCampers.add(camper);
                 }
+            }
+
+            // B2: apply a derived ordering (e.g. demand sort) when the active filter set supplies one.
+            // Pairing the pre-ordered model with empty RowSorter keys yields a sort with no column
+            // header and no arrow; a column click re-establishes sort keys and overrides this order.
+            java.util.Comparator<Camper> ordering =
+                    filterManager == null ? null : filterManager.getActiveOrdering();
+            if (ordering != null) {
+                filteredCampers.sort(ordering);
             }
         }
 
