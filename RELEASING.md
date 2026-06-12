@@ -10,13 +10,15 @@ Installers are built automatically by GitHub Actions (`.github/workflows/release
    git cherry-pick <sha>
    ```
 
-2. **Bump the version** in `pom.xml` (`<version>2.3-SNAPSHOT</version>` → the `-SNAPSHOT` suffix is stripped automatically and the rest becomes the installer's version, so keep it numeric like `2.3`). Commit the bump.
+2. **Bump the version** in `pom.xml` — the single source of truth. Change `<version>X.Y.Z-SNAPSHOT</version>` to the new version, e.g. `2.3.0-SNAPSHOT`. The `-SNAPSHOT` suffix is stripped automatically by CI; the rest becomes the installer version and the in-app title. Commit the bump.
+
+   Also update the date in the `docs/index.html` fallback line (`<p class="version">...`) — the version text itself is overwritten live by the GitHub API, but the date is static.
 
 3. **Tag and push.** The tag *push* is what triggers the build — `git tag` alone only creates the tag locally, so the two commands don't need to happen together, but nothing builds until the push.
 
    ```sh
-   git tag v2.3
-   git push origin main v2.3   # pushes the branch and the tag in one go
+   git tag v2.3.0
+   git push origin main v2.3.0   # pushes the branch and the tag in one go
    ```
 
 4. **Wait ~10 minutes.** The Actions run creates a GitHub Release for the tag with all four installers attached. Asset filenames are intentionally versionless (`HappyCamper-windows.msi`, etc.) so the `releases/latest/download/...` links in the README and landing page always point at the newest release.

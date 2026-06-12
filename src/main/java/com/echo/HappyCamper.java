@@ -14,8 +14,13 @@ import com.echo.ui.MainWindow;
  */
 public class HappyCamper {
     public static final String NAME = "HappyCamper";
-    public static final String VERSION = "2.2.3";
+    public static final String VERSION = readVersion();
     public static String NAME_VERSION = NAME+" "+VERSION;
+
+    private static String readVersion() {
+        String v = HappyCamper.class.getPackage().getImplementationVersion();
+        return (v != null) ? v : "dev";
+    }
 
     public static boolean WAIT_TO_AUTOMATE = false;
     public static boolean PRINT_LOGGED_ERRORS = true;
