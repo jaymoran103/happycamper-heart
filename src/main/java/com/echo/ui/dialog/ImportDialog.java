@@ -86,8 +86,8 @@ public class ImportDialog extends InputsDialog {
         for (RosterFeature feature : rosterService.getAvailableFeatures()) {
             // Skip activity feature as it's always enabled
             if (!feature.getFeatureId().equals("activity")) {
-                // Use cached value if available, otherwise default to true
-                boolean isEnabled = cachedFeatures.isEmpty() || cachedFeatures.contains(feature.getFeatureId());
+                // Default to enabled until the user has made an explicit selection
+                boolean isEnabled = !cachedSettings.isUserConfigured() || cachedFeatures.contains(feature.getFeatureId());
                 featureMap.put(feature.getFeatureName(), isEnabled);
             }
         }

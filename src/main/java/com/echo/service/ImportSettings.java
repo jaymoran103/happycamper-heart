@@ -14,6 +14,7 @@ public class ImportSettings {
     private File camperFile;
     private File activityFile;
     private List<String> enabledFeatureIds = new ArrayList<>();
+    private boolean userConfigured = false;
     
     /**
      * Creates a new ImportSettings instance with default values.
@@ -94,13 +95,22 @@ public class ImportSettings {
      */
     public ImportSettings setEnabledFeatureIds(List<String> enabledFeatureIds) {
         this.enabledFeatureIds = new ArrayList<>(enabledFeatureIds); // Store a copy to prevent modification
-        
+
         // Ensure activity feature is always enabled
         if (!this.enabledFeatureIds.contains("activity")) {
             this.enabledFeatureIds.add("activity");
         }
-        
+
+        this.userConfigured = true;
         return this;
+    }
+
+    /**
+     * Checks if the user has configured the settings.
+     * @return true if the user has made an explicit selection, false otherwise
+     */
+    public boolean isUserConfigured() {
+        return userConfigured;
     }
     
     /**
