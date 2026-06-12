@@ -48,8 +48,17 @@ public enum TestFiles {
     MERGED_SINGLE_ALLCOLUMNS("mergedRosters","singleCabinMerged_allColumns.csv"),
     MERGED_SINGLE_ALLCOLUMNS_CASCADENULLS("mergedRosters","singleCabinMerged_allColumns_cascadeNulls.csv"),
     MERGED_TWO_PROGRAMS("mergedRosters","doubleProgram_allColumns.csv"),
-    GENERIC_DATA(".","genericData.csv");
+    GENERIC_DATA(".","genericData.csv"),
 
+    // Added for quick testing of anonymized 2026 rosters
+    DEMO_2026_CAMPERS_S1("demoRosters", "camper-s1v1.csv"),
+    DEMO_2026_ACTIVITIES_S1V1("demoRosters", "activity-s1v1-missingcabin.csv"),
+    DEMO_2026_ACTIVITIES_S1V2("demoRosters", "activity-s1v2-missingswimlessons.csv"),
+    DEMO_2026_ACTIVITIES_S1V3("demoRosters", "activity-s1v3-complete.csv"),
+    DEMO_2026_ACTIVITIES_S1V4("demoRosters", "activity-s1v4-tuesdayswitches.csv");
+    
+
+    
     private final String directory;
     public final String filename;
 

@@ -10,10 +10,6 @@ Each folder holds a matched pair of files:
 
 To use them: open HappyCamper, select import, and choose the two files from the same folder.
 
-NOTE FOR WINDOWS USERS: if you're reading this inside the zip
-preview, extract the files first (right-click the zip and choose
-"Extract All") — HappyCamper can't open files still inside a zip.
-
 
 
 -----------------------------------------------------
@@ -47,10 +43,32 @@ a single group.
  3-full-session-gaps
 -----------------------------------------------------
 
-Same data set as 2-full-session, with the activity roster doctored to introduce activity gaps for happycamper to catch. Note that outpost is treated as 
+Same data set as session 6, doctored to introduce activity gaps for happycamper to catch. Note that outpost is treated as 
 a mixed session due to mismatch between camper activity counts, while the basic traditional camp program retains the
-same 3 round statusde as before.
+same 3 round status as before.
 
+-----------------------------------------------------
+4-assignment-iterations
+-----------------------------------------------------
+
+This set contains a series of real (anonymized) rosters generated while leaders progressively 
+caught and resolved issues based 
+on HappyCamper analysis and outside input. 
+
+Camper Roster
+- This report version was generated after Featherstone's preferences had been input, remedying 
+the reason for missing assignments in activity-s1v1.
+- Includes a staff kid, exempt from the activity system, and lacking several standard fields. This 
+outlier can be filtered out using the Programs Filter.
+
+Activity Roster
+- The activity roster was generated 4 times, each of which can be applied as an input to simulate 
+steps in the validation and revision process.
+
+1. activity-s1v1-missingcabin.csv – lacks assignments for Featherstone lodge, due to lack of input preferences. Discovered while exploring HappyCamper results. Unknown at the time: this roster also lacks swim assignments
+2. activity-s1v2-missingswimlessons.csv – lacks swimming assignments, discovered while exploring HappyCamper results and wondering why swimming had no assignees. Main motivator for new activity search feature. 
+3. activity-s1v3-complete.csv – resulting roster once above issues were rectified
+4. activity-s1v3-tuesdayswitches.csv – roster after second-day swaps were made. No monumental changes, included for posterity.
 
 
 -----------------------------------------------------

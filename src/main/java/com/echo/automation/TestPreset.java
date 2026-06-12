@@ -20,6 +20,38 @@ public enum TestPreset {
         6
     ),
 
+    DEMO_S1V1(2601,
+        "Anonymized 2026 data lacking a cabin's preferences, and swim assignments.",
+        TestFiles.DEMO_2026_CAMPERS_S1,
+        TestFiles.DEMO_2026_ACTIVITIES_S1V1,
+        new String[]{"activity", "program", "swimlevel", "preference"},
+        6
+    ),
+
+    DEMO_S1V2(2602,
+        "Anonymized 2026 data lacking swim assignments.",
+        TestFiles.DEMO_2026_CAMPERS_S1,
+        TestFiles.DEMO_2026_ACTIVITIES_S1V2,
+        new String[]{"activity", "program", "swimlevel", "preference"},
+        6
+    ),
+
+    DEMO_S1V3(2603,
+        "Anonymized 2026 data with complete information.",
+        TestFiles.DEMO_2026_CAMPERS_S1,
+        TestFiles.DEMO_2026_ACTIVITIES_S1V3,
+        new String[]{"activity", "program", "swimlevel", "preference"},
+        6
+    ),
+
+    DEMO_S1V4(2604,
+        "Anonymized 2026 data with switches since v3.",
+        TestFiles.DEMO_2026_CAMPERS_S1,
+        TestFiles.DEMO_2026_ACTIVITIES_S1V4,
+        new String[]{"activity", "program", "swimlevel", "preference"},
+        6
+    ),
+
     MINI_NORMAL(1, TestFiles.MINI_CAMPERS, TestFiles.MINI_ACTIVITIES, 1,
             "Normal pair of mini rosters. 3 campers, 3 total assignments"),
     MINI_MALFORMED_EXTRA(2, TestFiles.MINI_CAMPERS_EXTRA_CELL, TestFiles.MINI_ACTIVITIES, 1,
