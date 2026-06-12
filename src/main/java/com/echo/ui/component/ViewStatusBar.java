@@ -29,7 +29,7 @@ public class ViewStatusBar extends JPanel {
         statusLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         add(statusLabel, BorderLayout.CENTER);
 
-        JButton resetButton = new JButton("Reset");
+        JButton resetButton = new JButton("Reset Display");
         resetButton.addActionListener(e -> {
             if (onReset != null) {
                 onReset.run();
@@ -37,7 +37,7 @@ public class ViewStatusBar extends JPanel {
         });
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         rightPanel.add(resetButton);
-        add(rightPanel, BorderLayout.EAST);
+        add(rightPanel, BorderLayout.WEST);
     }
 
     /**

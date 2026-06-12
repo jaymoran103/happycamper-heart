@@ -1,28 +1,44 @@
 package com.echo.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Insets;
+import java.awt.RenderingHints;
 import java.awt.Taskbar;
+
+import javax.accessibility.Accessible;
 import java.awt.event.ActionEvent;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.event.RowSorterEvent;
+import javax.swing.plaf.basic.BasicComboPopup;
 
 import com.echo.HappyCamper;
 import com.echo.automation.TestPreset;
@@ -71,7 +87,22 @@ public class MainWindow extends JFrame {
     private JButton activityReportButton;
 
     // B1: universal search (top-right) + shared view-state status bar (south)
-    private final JTextField searchField = new JTextField(16);
+    private final JTextField searchField = new JTextField(10) {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (getText().isEmpty() && !isFocusOwner()) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                g2.setColor(new Color(160, 160, 160));
+                g2.setFont(getFont().deriveFont(Font.ITALIC));
+                Insets ins = getInsets();
+                int baseline = getHeight() - ins.bottom - getFontMetrics(g2.getFont()).getDescent();
+                g2.drawString("Search…", ins.left + 2, baseline);
+                g2.dispose();
+            }
+        }
+    };
     private final JComboBox<String> scopeCombo = new JComboBox<>();
     private final JComboBox<String> demandSortCombo = new JComboBox<>();
     private final ViewStatusBar viewStatusBar = new ViewStatusBar(this::handleReset);
@@ -207,8 +238,21 @@ public class MainWindow extends JFrame {
         buttonPanel.add(activityReportButton);
         buttonPanel.add(tutorialButton);
 
-        // Buttons on the left, universal search on the right (B1)
-        JPanel topBar = new JPanel(new BorderLayout());
+        // Buttons on the left, universal search on the right (B1).
+        // paintChildren draws the divider after both children so it stays visible even when
+        // the search panel slides left over the button panel at narrow window widths.
+        JPanel topBar = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintChildren(Graphics g) {
+                super.paintChildren(g);
+                int x = buttonPanel.getWidth();
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(Color.gray);
+                g2.drawLine(x, 0, x, getHeight());
+                g2.dispose();
+            }
+        };
+        topBar.setBackground(new Color(220, 220, 220));
         topBar.add(buttonPanel, BorderLayout.WEST);
         topBar.add(createSearchPanel(), BorderLayout.EAST);
         return topBar;
@@ -220,15 +264,22 @@ public class MainWindow extends JFrame {
      */
     private JPanel createSearchPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // Darker background distinguishes the search zone from the button zone.
+        // (220,220,220) matches DialogConstants.DIALOG_COLOR_BOTTOM used elsewhere in the app.
+        panel.setBackground(new Color(220, 220, 220));
 
         // B2: demand-sort control, parallel to search (separate from the Activity restrict filter)
+        styleComboBox(demandSortCombo);
+        demandSortCombo.setPrototypeDisplayValue("Activities");
         panel.add(new JLabel("Sort by demand:"));
         panel.add(demandSortCombo);
         demandSortCombo.addActionListener(e -> handleDemandSortChange());
 
-        panel.add(new JLabel("Search:"));
-        panel.add(scopeCombo);
+        // "Search:" label omitted — placeholder text in the field serves that purpose
+        styleComboBox(scopeCombo);
+        scopeCombo.setPrototypeDisplayValue("All Columns");
         panel.add(searchField);
+        panel.add(scopeCombo);
 
         // Live-search as the user types
         searchField.getDocument().addDocumentListener(new DocumentListener() {
@@ -248,6 +299,39 @@ public class MainWindow extends JFrame {
         }
         applySearchScope();
         rosterTable.applyFilters(); // fires refreshViewStatus via the table-update callback
+    }
+
+    /** Tightens a combo box's cell padding and widens its popup to natural content width. */
+    private static void styleComboBox(JComboBox<String> combo) {
+        combo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                    int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
+                lbl.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
+                return lbl;
+            }
+        });
+        combo.addPopupMenuListener(new PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    Accessible child = combo.getAccessibleContext().getAccessibleChild(0);
+                    if (child instanceof BasicComboPopup popup) {
+                        for (Component c : popup.getComponents()) {
+                            if (c instanceof JScrollPane sp) {
+                                sp.setPreferredSize(null);
+                                popup.pack();
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+            @Override public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {}
+            @Override public void popupMenuCanceled(PopupMenuEvent e) {}
+        });
     }
 
     /** Reads the search field + scope combo into the TextSearchFilter (no table refresh). */
