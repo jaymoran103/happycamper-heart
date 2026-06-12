@@ -8,21 +8,29 @@ import java.awt.Image;
 import java.awt.Taskbar;
 import java.awt.event.ActionEvent;
 import java.net.URL;
+import java.util.Collections;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import com.echo.HappyCamper;
 import com.echo.automation.TestPreset;
 import com.echo.domain.EnhancedRoster;
 import com.echo.filter.FilterManager;
+import com.echo.filter.TextSearchFilter;
 import com.echo.service.RosterService;
+import com.echo.service.ViewStateSummary;
 import com.echo.ui.component.RosterTable;
+import com.echo.ui.component.ViewStatusBar;
 import com.echo.ui.dialog.ColumnVisibilityDialog;
 import com.echo.ui.dialog.ExportDialog;
 import com.echo.ui.dialog.HelpDialog;
@@ -48,6 +56,11 @@ public class MainWindow extends JFrame {
     private final JPanel sidebarPanel;
     private final RosterTable rosterTable;
     private final JPanel controlPanel;
+
+    // B1: universal search (top-right) + shared view-state status bar (south)
+    private final JTextField searchField = new JTextField(16);
+    private final JComboBox<String> scopeCombo = new JComboBox<>();
+    private final ViewStatusBar viewStatusBar = new ViewStatusBar(this::handleReset);
 
     /**
      * Creates a new MainWindow with the given roster service.
@@ -88,10 +101,15 @@ public class MainWindow extends JFrame {
         setLayout(new BorderLayout());
         add(controlPanel, BorderLayout.NORTH);
         add(welcomePanel, BorderLayout.CENTER); // Start with welcome panel
+        add(viewStatusBar, BorderLayout.SOUTH);
 
-        // Initially hide the roster table
+        // B1: refresh the status bar whenever the visible row set changes
+        rosterTable.setOnTableUpdated(this::refreshViewStatus);
+
+        // Initially hide the roster table and status bar (shown once a roster loads)
         rosterTable.setVisible(false);
         sidebarPanel.setVisible(false);
+        viewStatusBar.setVisible(false);
     }
 
     /**
@@ -124,7 +142,7 @@ public class MainWindow extends JFrame {
      * @return The control panel
      */
     private JPanel createControlPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         JButton importButton = new HoverButton("Import");
         importButton.addActionListener(this::handleImport);
@@ -141,13 +159,117 @@ public class MainWindow extends JFrame {
         JButton tutorialButton = new HoverButton("Help");
         tutorialButton.addActionListener(this::handleTutorial);
 
-        panel.add(importButton);
-        panel.add(exportButton);
-        panel.add(viewSettingsButton);
-        panel.add(columnVisibilityButton);
-        panel.add(tutorialButton);
+        buttonPanel.add(importButton);
+        buttonPanel.add(exportButton);
+        buttonPanel.add(viewSettingsButton);
+        buttonPanel.add(columnVisibilityButton);
+        buttonPanel.add(tutorialButton);
+
+        // Buttons on the left, universal search on the right (B1)
+        JPanel topBar = new JPanel(new BorderLayout());
+        topBar.add(buttonPanel, BorderLayout.WEST);
+        topBar.add(createSearchPanel(), BorderLayout.EAST);
+        return topBar;
+    }
+
+    /**
+     * Builds the top-right universal search controls (B1): a scope selector + text field. Both are
+     * inert until a roster is loaded; an empty term passes every camper.
+     */
+    private JPanel createSearchPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+        panel.add(new JLabel("Search:"));
+        panel.add(scopeCombo);
+        panel.add(searchField);
+
+        // Live-search as the user types
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { handleSearchChange(); }
+            @Override public void removeUpdate(DocumentEvent e) { handleSearchChange(); }
+            @Override public void changedUpdate(DocumentEvent e) { handleSearchChange(); }
+        });
+        scopeCombo.addActionListener(e -> handleSearchChange());
 
         return panel;
+    }
+
+    /** Pushes the current search field/scope into the always-on TextSearchFilter and refreshes the table. */
+    private void handleSearchChange() {
+        if (filterManager == null) {
+            return;
+        }
+        TextSearchFilter search = (TextSearchFilter) filterManager.getFilter("textsearch");
+        if (search == null) {
+            return;
+        }
+        search.setSearchTerm(searchField.getText());
+        Object scope = scopeCombo.getSelectedItem();
+        if (scope != null) {
+            search.setScope(scope.toString());
+        }
+        rosterTable.applyFilters(); // fires refreshViewStatus via the table-update callback
+    }
+
+    /** Recomposes and displays the shared view-state status line. */
+    private void refreshViewStatus() {
+        if (currentRoster == null) {
+            return;
+        }
+        ViewStateSummary summary = new ViewStateSummary()
+                .setCounts(rosterTable.getVisibleCount(), rosterTable.getTotalCount());
+
+        TextSearchFilter search = filterManager == null
+                ? null : (TextSearchFilter) filterManager.getFilter("textsearch");
+        if (search != null) {
+            summary.setSearch(search.getSearchTerm(), search.getScopeLabel());
+        }
+
+        viewStatusBar.setStatusText(summary.compose());
+    }
+
+    /**
+     * Reset (B1): clears the universal search, restores all sidebar filters to defaults, and drops any
+     * active sort, then refreshes the table.
+     */
+    private void handleReset() {
+        if (currentRoster == null || filterManager == null) {
+            return;
+        }
+        searchField.setText(""); // clears the search term via the document listener
+        if (scopeCombo.getItemCount() > 0) {
+            scopeCombo.setSelectedIndex(0);
+        }
+
+        // Rebuild filters from scratch (resets every sidebar filter to its default state)
+        filterManager.createFiltersForRoster(currentRoster);
+        rebuildSidebar();
+
+        // Drop any active sort so the header arrow clears too
+        rosterTable.getRowSorter().setSortKeys(Collections.emptyList());
+
+        rosterTable.applyFilters();
+    }
+
+    /** Rebuilds the filter sidebar panels from the current filter manager state. */
+    private void rebuildSidebar() {
+        sidebarPanel.removeAll();
+        FilterSidebar filterSidebar = new FilterSidebar(currentRoster, filterManager);
+        sidebarPanel.add(filterSidebar, BorderLayout.CENTER);
+        filterSidebar.updateFilterPanels();
+        sidebarPanel.revalidate();
+        sidebarPanel.repaint();
+    }
+
+    /** Populates the search-scope selector with the two named presets plus each visible column. */
+    private void populateScopeCombo() {
+        scopeCombo.removeAllItems();
+        scopeCombo.addItem(TextSearchFilter.SCOPE_ALL_NAMES);
+        scopeCombo.addItem(TextSearchFilter.SCOPE_ASSIGNED_ACTIVITIES);
+        for (String header : currentRoster.getOrderedVisibleHeaders()) {
+            scopeCombo.addItem(header);
+        }
+        scopeCombo.setSelectedIndex(0);
     }
 
     /**
@@ -176,22 +298,19 @@ public class MainWindow extends JFrame {
         // Then reset to default values
         roster.resetHeaderVisibility();
 
+        // Reset any stale search term before wiring the new roster's scope options
+        searchField.setText("");
+
         // Set roster in table
         rosterTable.setRoster(roster, filterManager);
 
         // Create and add filter sidebar
         //System.out.println("MainWindow.setRoster: Creating filter sidebar");
-        sidebarPanel.removeAll();
-        FilterSidebar filterSidebar = new FilterSidebar(roster, filterManager);
-        sidebarPanel.add(filterSidebar, BorderLayout.CENTER);
+        rebuildSidebar();
 
-        // Update filter panels
-        //System.out.println("MainWindow.setRoster: Updating filter panels");
-        filterSidebar.updateFilterPanels();
-
-        // Make sure the sidebar is visible
-        sidebarPanel.revalidate();
-        sidebarPanel.repaint();
+        // B1: populate search scopes for this roster and reveal the status bar
+        populateScopeCombo();
+        viewStatusBar.setVisible(true);
 
         // Show the split pane and hide the welcome panel
         Component centerComponent = ((BorderLayout) getContentPane().getLayout()).getLayoutComponent(BorderLayout.CENTER);
@@ -210,6 +329,9 @@ public class MainWindow extends JFrame {
         // Make components visible
         rosterTable.setVisible(true);
         sidebarPanel.setVisible(true);
+
+        // Initial status line ("Showing N of N campers")
+        refreshViewStatus();
 
         // Refresh UI
         revalidate();

@@ -141,6 +141,9 @@ public class FilterManager {
         // Always add the assignment filter to show basic round counts
         addFilter(new AssignmentFilter());
 
+        // B1: universal search is always-on (the only non-feature-gated filter; see docs/sprint-conventions.md)
+        addFilter(new TextSearchFilter());
+
         if (roster.hasFeature("program")){
             addFilter(new SortedProgramFilter());
             // addFilter(new CamperRoundsFilter()); Disabling, redundant now

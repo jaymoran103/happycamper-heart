@@ -71,9 +71,10 @@ public class FilterSystemIntegrationTest {
         // Create filters for the roster
         filterManager.createFiltersForRoster(roster);
 
-        // Verify the correct filters were created
-        assertEquals(3, filterManager.getFilterCount());
+        // Verify the correct filters were created (incl. the always-on universal search, B1)
+        assertEquals(4, filterManager.getFilterCount());
         assertNotNull(filterManager.getFilter("assignment"));
+        assertNotNull(filterManager.getFilter("textsearch"));
         assertNotNull(filterManager.getFilter("program-list"));
         assertNotNull(filterManager.getFilter("preference"));
     }
