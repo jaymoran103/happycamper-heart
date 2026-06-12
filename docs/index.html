@@ -52,6 +52,16 @@
   .dl a.button:hover { background: var(--accent-dark); }
   .dl p.note { font-size: .78rem; color: #6b7a6e; margin-top: .75rem; line-height: 1.45; }
   .dl p.note a { color: var(--accent-dark); }
+  .whatsnew { max-width: 32rem; margin: 1.5rem auto; padding: 1rem 1.25rem;
+    background: rgba(47, 86, 138, .05); border: 1px solid rgba(47, 86, 138, .15);
+    border-radius: 10px; text-align: left; }
+  .whatsnew h2 { font-size: .78rem; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--accent-dark); margin-bottom: .6rem; }
+  .whatsnew ul { list-style: none; padding: 0; margin: 0; }
+  .whatsnew li { position: relative; padding-left: 1.3rem; margin: .35rem 0;
+    font-size: .9rem; line-height: 1.45; }
+  .whatsnew li::before { content: "+"; position: absolute; left: 0; top: -.05rem;
+    color: var(--accent); font-weight: 700; }
   footer { margin-top: auto; padding-top: 2rem; font-size: .85rem; color: #84937f; }
   footer a { color: inherit; }
   footer div + div { margin-top: .4rem; }
@@ -62,12 +72,22 @@
 
   <img class="logo" src="icon.png" alt="HappyCamper logo">
   <h1>HappyCamper</h1>
-  <p class="version"><span id="version">Version 2.2</span> &ndash; June 5, 2026</p> <!-- version updated automatically from the latest release -->
+  <p class="version"><span id="version">Version 2.3.0</span> &ndash; June 12, 2026</p> <!-- version updated automatically from the latest release -->
   <p class="tagline">
     <!-- Personalize this blurb -->
-    Analyze and manage activity assignments, spot oversights, and measure preference satisfaction.
-    Runs entirely on your computer, with nothing else to install.
+    Analyze activity assignments, catch oversights, and measure preference satisfaction.
   </p>
+
+  <div class="whatsnew">
+    <h2>New in v2.3</h2>
+    <ul>
+      <li>Search bar in the top right</li>
+      <li>Filter by activity assignments</li>
+      <li>Isolate unrequested preferences</li>
+      <li>Explicit checks for swim lesson mismatches</li>
+      <li>Footer indicating display status, plus reset button</li>
+    </ul>
+  </div>
 
   <div class="buttons">
     <div class="dl" id="mac-arm">
