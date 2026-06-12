@@ -35,18 +35,27 @@ entry names what bent, where, and why it's safe.
 - **Remaining bend — derived sort with no column/arrow:** the demand sort has no backing table column.
   `RosterTable.updateModel` pre-orders the filtered list with an optional `Comparator<Camper>`
   (`setCamperOrdering`); selecting a demand activity clears the RowSorter sort keys so there is no arrow.
-  A column-header click re-establishes sort keys and the RowSorter overrides the model order.
-- **Known prototype limitation:** the status bar's "Sorted by: demand for …" label persists even if the
-  user then clicks a column header (the column arrow is the accurate cue); a RowSorter listener to
-  retitle the segment was left out.
+- **One indicator per sort type:** demand sort and column-header sort are **mutually exclusive**, and each
+  has exactly one cue — demand sort shows in the status bar ("Sorted by: demand for …", since it has no
+  arrow); a column sort shows via the header arrow only (not echoed in the footer, which would duplicate
+  the arrow). Entering a demand sort clears the column keys; a column-header click clears the demand sort
+  (`MainWindow` RowSorterListener → `clearDemandSortForColumnSort`), resetting the combo to None and
+  flashing a one-shot amber status note ("demand sort cleared by column sort") that clears on next refresh.
 - **Why safe:** the filter is now a plain filter; the sort is a pure comparator over campers that mutates
   no roster data. Neither depends on the other.
 
-## D1 — aggregate reports + derived activity catalog
-- **Where:** `PreferenceReportData`.
-- **Bend:** produces aggregate report tables (not roster columns) and derives its activity catalog at
+## D1 — aggregate report + derived activity catalog
+- **Where:** `ActivityReportData` (service) + `ReportDialog` (ui/dialog).
+- **Bend:** produces an aggregate report table (not roster columns) and derives its activity catalog at
   runtime (distinct non-empty activities across all parsed preferences ∪ all assignments) — there is no
-  master activity list to read from.
+  master activity list to read from. One button ("Activity Report") opens a popup with one row per
+  activity and six columns: Activity, R1 count, R2 count, R3 count, Avg Rank (In), Avg Rank (Not In).
+  "In/Not In" split the mean preference rank between campers enrolled vs. not enrolled; campers who
+  didn't preference the activity are excluded from both averages (shown as "—").
+- **Two row types:** `toRow()` returns `List<Object>` for numeric sort in JTable; `toCsvRow()` returns
+  `List<String>` for CSV export. `ReportDialog` accepts both.
+- **TableLook:** only `doHeaderLook` is applied (sort arrows, hand cursor, header colors); `doCellLook`
+  is skipped because its renderer casts values to String, which conflicts with the numeric Object types.
 - **Why safe:** read-only aggregation over existing per-camper data; no roster mutation.
 
 ## TextSearchFilter — the only non-gated filter

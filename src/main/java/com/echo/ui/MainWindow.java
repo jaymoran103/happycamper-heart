@@ -9,6 +9,7 @@ import java.awt.Taskbar;
 import java.awt.event.ActionEvent;
 import java.net.URL;
 import java.util.Collections;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -19,7 +20,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.RowSorterEvent;
@@ -31,6 +31,7 @@ import com.echo.filter.ActivityFilter;
 import com.echo.filter.FilterManager;
 import com.echo.filter.TextSearchFilter;
 import com.echo.service.ActivityCatalog;
+import com.echo.service.ActivityReportData;
 import com.echo.service.DemandSort;
 import com.echo.service.RosterService;
 import com.echo.service.ViewStateSummary;
@@ -40,6 +41,7 @@ import com.echo.ui.dialog.ColumnVisibilityDialog;
 import com.echo.ui.dialog.ExportDialog;
 import com.echo.ui.dialog.HelpDialog;
 import com.echo.ui.dialog.ImportDialog;
+import com.echo.ui.dialog.ReportDialog;
 import com.echo.ui.dialog.ViewSettingsDialog;
 import com.echo.ui.elements.HoverButton;
 import com.echo.ui.filter.FilterSidebar;
@@ -66,6 +68,7 @@ public class MainWindow extends JFrame {
     private JButton exportButton;
     private JButton viewSettingsButton;
     private JButton columnVisibilityButton;
+    private JButton activityReportButton;
 
     // B1: universal search (top-right) + shared view-state status bar (south)
     private final JTextField searchField = new JTextField(16);
@@ -184,6 +187,9 @@ public class MainWindow extends JFrame {
         columnVisibilityButton = new HoverButton("Column Visibility");
         columnVisibilityButton.addActionListener(this::handleColumnVisibility);
 
+        activityReportButton = new HoverButton("Activity Report");
+        activityReportButton.addActionListener(this::handleActivityReport);
+
         JButton tutorialButton = new HoverButton("Help");
         tutorialButton.addActionListener(this::handleTutorial);
 
@@ -192,11 +198,13 @@ public class MainWindow extends JFrame {
         exportButton.setEnabled(false);
         viewSettingsButton.setEnabled(false);
         columnVisibilityButton.setEnabled(false);
+        activityReportButton.setEnabled(false);
 
         buttonPanel.add(importButton);
         buttonPanel.add(exportButton);
         buttonPanel.add(viewSettingsButton);
         buttonPanel.add(columnVisibilityButton);
+        buttonPanel.add(activityReportButton);
         buttonPanel.add(tutorialButton);
 
         // Buttons on the left, universal search on the right (B1)
@@ -433,6 +441,7 @@ public class MainWindow extends JFrame {
         exportButton.setEnabled(true);
         viewSettingsButton.setEnabled(true);
         columnVisibilityButton.setEnabled(true);
+        activityReportButton.setEnabled(true);
 
         // Create filter manager and set up filters
         //System.out.println("MainWindow.setRoster: Creating filter manager");
@@ -578,6 +587,18 @@ public class MainWindow extends JFrame {
         // search, since "All Columns" / a per-column scope depends on which columns are visible).
         populateScopeCombo();
         handleSearchChange();
+    }
+
+    private void handleActivityReport(ActionEvent event) {
+        if (currentRoster == null) {
+            JOptionPane.showMessageDialog(this, "No roster to report on.\nUse 'Import' to load a roster.", "Needs Roster", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        List<ActivityReportData.ActivityRow> computed = ActivityReportData.compute(currentRoster);
+        List<List<Object>> tableRows = computed.stream().map(ActivityReportData::toRow).toList();
+        List<List<String>> csvRows   = computed.stream().map(ActivityReportData::toCsvRow).toList();
+        new ReportDialog(this, "Activity Report", ActivityReportData.headerRow(),
+            tableRows, csvRows, "activity-report.csv").showDialog();
     }
 
     /**
