@@ -19,8 +19,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.RowSorterEvent;
 
 import com.echo.HappyCamper;
 import com.echo.automation.TestPreset;
@@ -120,6 +122,17 @@ public class MainWindow extends JFrame {
 
         // B1: refresh the status bar whenever the visible row set changes
         rosterTable.setOnTableUpdated(this::refreshViewStatus);
+
+        // B2: a column-header sort and the demand sort are mutually exclusive. handleDemandSortChange
+        // already clears column keys when entering a demand sort; this is the reverse — a user column
+        // sort displaces an active demand sort, resetting the combo box.
+        rosterTable.getRowSorter().addRowSorterListener(e -> {
+            if (e.getType() == RowSorterEvent.Type.SORT_ORDER_CHANGED
+                    && demandSortActivity != null
+                    && !rosterTable.getRowSorter().getSortKeys().isEmpty()) {
+                clearDemandSortForColumnSort();
+            }
+        });
 
         // Initially hide the roster table and status bar (shown once a roster loads)
         rosterTable.setVisible(false);
@@ -270,6 +283,20 @@ public class MainWindow extends JFrame {
             rosterTable.getRowSorter().setSortKeys(Collections.emptyList());
         }
         rosterTable.applyFilters();
+    }
+
+    /**
+     * Reverse of {@link #handleDemandSortChange}: a user column sort has displaced an active demand
+     * sort, so reset the combo to None and drop the camper ordering (the column sort now governs the
+     * view, with its header arrow as the indicator). Flags the change with a transient status note,
+     * deferred so it survives the selection events the table fires while re-sorting.
+     */
+    private void clearDemandSortForColumnSort() {
+        suppressSearchEvents = true;
+        demandSortCombo.setSelectedItem(DEMAND_SORT_NONE);
+        suppressSearchEvents = false;
+        demandSortActivity = null;
+        rosterTable.setCamperOrdering(null); // column sort drives the view; no model pre-order needed
     }
 
     /** Populates the demand-sort selector with None + each catalog activity. */
