@@ -149,7 +149,9 @@ public class FilterManager {
             addFilter(new PreferenceFilter());
         }
         if (roster.hasFeature("swimlevel")) {
+            // C1: one feature gate produces two independent filters/columns
             addFilter(new SwimLevelFilter());
+            addFilter(new SwimLessonFilter());
         }
 
 

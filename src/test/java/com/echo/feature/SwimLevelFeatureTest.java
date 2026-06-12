@@ -62,7 +62,51 @@ public class SwimLevelFeatureTest {
         // Get and verify added headers
         List<String> addedHeaders = feature.getAddedHeaders();
         assertTrue(addedHeaders.contains(RosterHeader.SWIMCONFLICTS.standardName));
-        assertEquals(1, addedHeaders.size());
+        assertTrue(addedHeaders.contains(RosterHeader.SWIMLESSON.standardName));
+        assertEquals(2, addedHeaders.size());
+    }
+
+    /** Helper: build + apply a single-camper roster and return that camper. */
+    private Camper applySingleCamper(String swimColor, String r1, String r2, String r3) {
+        EnhancedRoster r = new EnhancedRoster();
+        r.addHeader(RosterHeader.SWIMCOLOR.camperRosterName);
+        Map<String, String> data = new HashMap<>();
+        data.put(RosterHeader.FIRST_NAME.camperRosterName, "Test");
+        data.put(RosterHeader.LAST_NAME.camperRosterName, "Camper");
+        data.put(RosterHeader.SWIMCOLOR.camperRosterName, swimColor);
+        if (r1 != null) data.put(RosterHeader.buildRoundString(1), r1);
+        if (r2 != null) data.put(RosterHeader.buildRoundString(2), r2);
+        if (r3 != null) data.put(RosterHeader.buildRoundString(3), r3);
+        Camper camper = new Camper(data);
+        r.addCamper(camper);
+        new SwimLevelFeature().applyFeature(r, new WarningManager());
+        return camper;
+    }
+
+    @Test
+    @DisplayName("Swim lesson validity: red swimmer without lessons is flagged")
+    public void testSwimLessonRedMissing() {
+        Camper camper = applySingleCamper("Red", "Archery", "Sports", null);
+        assertEquals(SwimLevelFeature.FLAG_RED_MISSING, camper.getValue(RosterHeader.SWIMLESSON.standardName));
+    }
+
+    @Test
+    @DisplayName("Swim lesson validity: non-red assigned lessons is flagged")
+    public void testSwimLessonNonRedAssigned() {
+        Camper camper = applySingleCamper("Blue", "Swimming", "Sailing", null);
+        assertEquals(SwimLevelFeature.FLAG_NONRED_ASSIGNED, camper.getValue(RosterHeader.SWIMLESSON.standardName));
+    }
+
+    @Test
+    @DisplayName("Swim lesson validity: red with lessons and non-red without are clean")
+    public void testSwimLessonClean() {
+        Camper redWithLessons = applySingleCamper("Red", "Swimming", "Archery", null);
+        assertEquals(com.echo.domain.DataConstants.DISPLAY_EMPTY,
+                redWithLessons.getValue(RosterHeader.SWIMLESSON.standardName));
+
+        Camper nonRedWithout = applySingleCamper("White", "Archery", "Sports", null);
+        assertEquals(com.echo.domain.DataConstants.DISPLAY_EMPTY,
+                nonRedWithout.getValue(RosterHeader.SWIMLESSON.standardName));
     }
 
     @Test

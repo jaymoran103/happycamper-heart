@@ -17,7 +17,7 @@ import com.echo.ui.filter.FilterPanelFactory;
  */
 public class SwimLevelFilter implements RosterFilter {
     private static final String FILTER_ID = "swimlevel";
-    public static final String FILTER_NAME = "Swim Level Compatibility";
+    public static final String FILTER_NAME = "Aquatic Assignment Validity";
 
     private boolean showCompatibleCampers = true;
     private boolean showIncompatibleCampers = true;

@@ -33,8 +33,16 @@ public class SwimLevelFeature implements RosterFeature {
 
     private final List<String> requiredHeaders = Arrays.asList(RosterHeader.SWIMCOLOR.camperRosterName);
 
-    private final List<String> addedHeaders = Arrays.asList(RosterHeader.SWIMCONFLICTS.standardName);
-                                                             
+    private final List<String> addedHeaders = Arrays.asList(RosterHeader.SWIMCONFLICTS.standardName,
+                                                            RosterHeader.SWIMLESSON.standardName);
+
+    // The activity that represents required swim lessons. Red swimmers are expected to be
+    // assigned it; non-red swimmers being assigned it is a likely mistake. See docs/sprint-conventions.md (C1).
+    public static final String SWIM_LESSON_ACTIVITY = "Swimming";
+    public static final String FLAG_RED_MISSING = "Red swimmer missing lessons";
+    public static final String FLAG_NONRED_ASSIGNED = "Non-red assigned lessons";
+
+
 
     // Maps of required level for each activity, and the names that map to each level
     // FUTURE - add config file for preference exemptions?
@@ -225,11 +233,48 @@ public class SwimLevelFeature implements RosterFeature {
         // camper.setValue(RosterHeader.SWIMVALIDITY.standardName, swimValidity);
 
         // Report specific incompatible activities as field, add to camper.
-        String activityConflicts = allActivitiesApproved 
+        String activityConflicts = allActivitiesApproved
             ? DataConstants.DISPLAY_EMPTY
             : String.join(", ",incompatibleActivities);
         camper.setValue(RosterHeader.SWIMCONFLICTS.standardName, activityConflicts);
 
+        // C1: independent swim-lesson validity check (a second column/filter off one feature)
+        camper.setValue(RosterHeader.SWIMLESSON.standardName, determineSwimLessonValidity(swimLevelName, assignments));
+    }
+
+    /**
+     * Determines whether a camper's swim-lesson assignment matches their swim level.
+     *
+     * Red (level-0) swimmers are expected to be assigned lessons ({@value #SWIM_LESSON_ACTIVITY});
+     * non-red swimmers being assigned lessons is a likely scheduling mistake. Anything else (red with
+     * lessons, non-red without) is clean. Unknown swim levels can't be judged and render empty.
+     *
+     * @param swimLevelName The camper's swim level name (e.g. "Red")
+     * @param assignments The camper's per-round activity assignments
+     * @return A flag string for a mismatch, or DISPLAY_EMPTY when valid/undeterminable
+     */
+    private String determineSwimLessonValidity(String swimLevelName, String[] assignments) {
+        Integer swimLevelInt = levelNameMappings.get(swimLevelName);
+        if (swimLevelInt == null) {
+            return DataConstants.DISPLAY_EMPTY; // unknown level already warned on; can't judge lessons
+        }
+        boolean isRed = swimLevelInt == 0;
+
+        boolean hasLessons = false;
+        for (String activity : assignments) {
+            if (SWIM_LESSON_ACTIVITY.equals(activity)) {
+                hasLessons = true;
+                break;
+            }
+        }
+
+        if (isRed && !hasLessons) {
+            return FLAG_RED_MISSING;
+        }
+        if (!isRed && hasLessons) {
+            return FLAG_NONRED_ASSIGNED;
+        }
+        return DataConstants.DISPLAY_EMPTY;
     }
 
     /**
