@@ -1,6 +1,7 @@
 package com.echo.feature;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.echo.domain.Camper;
@@ -45,6 +46,32 @@ public class PreferenceFeatureUtils {
             unrequestedActivities.add(assignment);
         }
         return unrequestedActivities;
+    }
+
+    /**
+     * Determines the activities a camper requested in their preferences but was NOT assigned.
+     *
+     * The preference-ordered inverse of {@link #determineUnrequestedActivities}: walks the
+     * preference list in rank order and keeps any preference the camper was not assigned in any
+     * round. Exempt activities (e.g. Swimming) are treated as satisfied, since they sit outside
+     * the preference system and a camper can't meaningfully "want and miss" them.
+     *
+     * @param preferences List of camper preferences, in rank order
+     * @param assignments Array of assignments for each round
+     * @return List of preferenced-but-unassigned activities, in preference order
+     */
+    public static List<String> determineUnfulfilledPreferences(List<String> preferences,String[] assignments){
+        List<String> assignmentList = Arrays.asList(assignments);
+        List<String> unfulfilled = new ArrayList<>();
+        for (String preference : preferences) {
+            if ( DataConstants.isEmpty(preference)
+                    || assignmentList.contains(preference)
+                    || PreferenceFeature.getExemptActivities().contains(preference) ){
+                continue;
+            }
+            unfulfilled.add(preference);
+        }
+        return unfulfilled;
     }
 
     public static int[] determineRoundPoints(List<String> preferences,String[] assignments){
@@ -156,6 +183,38 @@ public class PreferenceFeatureUtils {
                 return (PreferenceFeature.PREFERENCE_COUNT - preferences.size()) / 2;
             }
         }
+    }
+
+    /**
+     * Converts a round's raw choice-points into a human-readable ordinal rank label.
+     *
+     * Presentation-only: the scoring math still consumes the inverted points
+     * ({@link #determineRoundPoints}) unchanged. Points map back to rank via {@code rank = 11 - points}
+     * (10pts = 1st choice ... 1pt = 10th choice); 0 points means the assignment was not a preference
+     * (or was exempt/empty) and renders as an em dash.
+     *
+     * @param points A round's choice-points (0..PREFERENCE_COUNT)
+     * @return Ordinal label such as "1st", "3rd", "10th", or "—" for 0/non-preference
+     */
+    static String pointsToRankLabel(int points) {
+        if (points <= 0) {
+            return "—";
+        }
+        int rank = PreferenceFeature.PREFERENCE_COUNT + 1 - points;
+        int mod100 = rank % 100;
+        int mod10 = rank % 10;
+        String suffix;
+        if (mod100 >= 11 && mod100 <= 13) {
+            suffix = "th";
+        } else {
+            suffix = switch (mod10) {
+                case 1 -> "st";
+                case 2 -> "nd";
+                case 3 -> "rd";
+                default -> "th";
+            };
+        }
+        return rank + suffix;
     }
 
     /**

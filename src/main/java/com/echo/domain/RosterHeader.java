@@ -32,6 +32,7 @@ public enum RosterHeader {
     PREFERENCE_SCORE("Preference Score",true),
     PREFERENCE_PERCENTILE("Preference Percentile",false),
     UNREQUESTED_ACTIVITIES("Unrequested Activities",true),
+    UNFULFILLED_PREFERENCES("Unfulfilled Preferences",true),
     SCORE_BY_ROUND("Preference by Round",false),
 
     // CAMPER_ID(),

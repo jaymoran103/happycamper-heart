@@ -71,6 +71,7 @@ public class PreferenceFeature implements RosterFeature {
                                                             RosterHeader.PREFERENCE_SCORE.standardName,
                                                             RosterHeader.PREFERENCE_PERCENTILE.standardName,
                                                             RosterHeader.UNREQUESTED_ACTIVITIES.standardName,
+                                                            RosterHeader.UNFULFILLED_PREFERENCES.standardName,
                                                             RosterHeader.SCORE_BY_ROUND.standardName);
 
 // PREFERENCE_SCORE_HEADER, PREFERENCE_PERCENTILE_HEADER, SCORE_BY_ROUND_HEADER);
@@ -239,6 +240,9 @@ public class PreferenceFeature implements RosterFeature {
         // Determine camper's unrequested activities
         List<String> unrequestedActivities = PreferenceFeatureUtils.determineUnrequestedActivities(camper,preferences,assignments);
 
+        // Determine camper's unfulfilled preferences (preferenced-but-unassigned, in preference order)
+        List<String> unfulfilledPreferences = PreferenceFeatureUtils.determineUnfulfilledPreferences(preferences,assignments);
+
         // Determine points for each round
         int[] roundPoints = PreferenceFeatureUtils.determineRoundPoints(preferences,assignments);
 
@@ -247,6 +251,7 @@ public class PreferenceFeature implements RosterFeature {
 
         // Add results to the roster
         setValue_unrequestedActivities(camper,unrequestedActivities);
+        setValue_unfulfilledPreferences(camper,unfulfilledPreferences);
         setValue_roundScores(camper,roundPoints);
         setValue_mainScore(camper,preferenceScore);
 
@@ -321,15 +326,31 @@ public class PreferenceFeature implements RosterFeature {
     }
 
     /**
-     * Adds round-by-round scores to the roster
+     * Adds the unfulfilled preferences set to the roster.
+     * For empty sets, returns the DISPLAY_EMPTY constant
      *
      * @param camper The camper to update
-     * @param roundPoints The array of round-by-round scores to add
+     * @param unfulfilledPreferences The ordered list of preferenced-but-unassigned activities
+     */
+    private void setValue_unfulfilledPreferences(Camper camper,List<String> unfulfilledPreferences){
+        String value = unfulfilledPreferences.isEmpty() ? DataConstants.DISPLAY_EMPTY : String.join(", ",unfulfilledPreferences);
+        camper.setValue(RosterHeader.UNFULFILLED_PREFERENCES.standardName,value);
+    }
+
+    /**
+     * Adds round-by-round preference ranks to the roster, as human-readable ordinals.
+     *
+     * Presentation-only divergence (documented bend, see docs/sprint-conventions.md): the column now
+     * shows the camper's choice rank per round (e.g. "1st, —, 3rd") instead of the raw inverted points.
+     * Scoring still consumes the points array directly; this conversion never feeds back into the math.
+     *
+     * @param camper The camper to update
+     * @param roundPoints The array of round-by-round choice-points to render
      */
     private void setValue_roundScores(Camper camper,int[] roundPoints){
         StringBuilder valueBuilder = new StringBuilder();
         for (int i = 0; i < roundPoints.length; i++) {
-            valueBuilder.append(roundPoints[i]);
+            valueBuilder.append(PreferenceFeatureUtils.pointsToRankLabel(roundPoints[i]));
             if (i < roundPoints.length - 1) {
                 valueBuilder.append(", ");
             }

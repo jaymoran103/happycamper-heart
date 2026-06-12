@@ -70,7 +70,12 @@ public class PreferenceFeatureTest {
         assertTrue(addedHeaders.contains(RosterHeader.PREFERENCE_SCORE.standardName));
         assertTrue(addedHeaders.contains(RosterHeader.PREFERENCE_PERCENTILE.standardName));
         assertTrue(addedHeaders.contains(RosterHeader.UNREQUESTED_ACTIVITIES.standardName));
+        assertTrue(addedHeaders.contains(RosterHeader.UNFULFILLED_PREFERENCES.standardName));
         assertTrue(addedHeaders.contains(RosterHeader.SCORE_BY_ROUND.standardName));
+
+        // Unfulfilled column is registered immediately after Unrequested (enum order = column order)
+        assertEquals(addedHeaders.indexOf(RosterHeader.UNREQUESTED_ACTIVITIES.standardName) + 1,
+                addedHeaders.indexOf(RosterHeader.UNFULFILLED_PREFERENCES.standardName));
     }
 
     @Test
@@ -207,6 +212,23 @@ public class PreferenceFeatureTest {
         assertFalse(unrequestedActivities.contains("Swimming"));
         assertTrue(unrequestedActivities.contains("Hiking"));
         assertFalse(unrequestedActivities.contains("Archery"));
+    }
+
+    @Test
+    @DisplayName("Test unfulfilled preferences detection")
+    public void testUnfulfilledPreferencesDetection() {
+        Camper camper = createTestCamper(
+            "Archery, Sports, Fishing",  // preferences
+            "3",                         // round count
+            "Archery", "Swimming", "Hiking"  // assignments: only Archery fulfilled
+        );
+
+        roster.addCamper(camper);
+        feature.applyFeature(roster, warningManager);
+
+        // Sports and Fishing were wanted but not assigned, in preference order. Plain names, no (#n).
+        String unfulfilled = camper.getValue(RosterHeader.UNFULFILLED_PREFERENCES.standardName);
+        assertEquals("Sports, Fishing", unfulfilled);
     }
 
     @Test
