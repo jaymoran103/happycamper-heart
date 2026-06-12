@@ -38,7 +38,7 @@ public class SwimLessonFilterTest {
     @DisplayName("Filter id and name")
     public void testFilterIdAndName() {
         assertEquals("swimlesson", filter.getFilterId());
-        assertEquals("Swim Lesson Validity", filter.getFilterName());
+        assertEquals("Swim Lessons", filter.getFilterName());
     }
 
     @Test

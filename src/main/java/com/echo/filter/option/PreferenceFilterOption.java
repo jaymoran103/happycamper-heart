@@ -4,8 +4,8 @@ package com.echo.filter.option;
  * Enum for preference filter options.
  */
 public enum PreferenceFilterOption implements FilterOption {
-    SHOW_WITHOUT_UNREQUESTED("Campers with requests met", true),
-    SHOW_WITH_UNREQUESTED("Campers with unrequested activities", true);
+    SHOW_WITHOUT_UNREQUESTED("Assignments match requests", true),
+    SHOW_WITH_UNREQUESTED("Unrequested assignments", true);
     
     private final String label;
     private final boolean defaultState;

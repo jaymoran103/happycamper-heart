@@ -85,6 +85,6 @@ public class ActivityFilterTest {
     @DisplayName("Filter id and name")
     public void testIdName() {
         assertEquals("activity-select", filter.getFilterId());
-        assertEquals("Activity", filter.getFilterName());
+        assertEquals("Activity Selector", filter.getFilterName());
     }
 }

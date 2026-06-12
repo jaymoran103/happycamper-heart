@@ -15,7 +15,7 @@ entry names what bent, where, and why it's safe.
 - **Where:** `SwimLevelFeature` (adds `SWIMLESSON` alongside `SWIMCONFLICTS`) + the `swimlevel` block in
   `FilterManager.createFiltersForRoster` (registers both `SwimLevelFilter` and `SwimLessonFilter`).
 - **Bend:** relaxes the usual 1-feature→1-column / 1-filter habit. One `swimlevel` gate now yields two
-  independent columns ("Aquatic Assignment Validity" via SWIMCONFLICTS, "Swim Lesson Validity" via
+  independent columns ("Aquatic Conflicts" via SWIMCONFLICTS, "Swim Lesson" via
   SWIMLESSON) and two independently-toggling filters.
 - **Why safe:** the core gate convention is intact (still keyed on `hasFeature("swimlevel")`); only the
   cardinality changed. The swim-lessons activity is the literal string `"Swimming"`; level `Red` = 0.

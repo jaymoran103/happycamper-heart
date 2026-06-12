@@ -1,11 +1,11 @@
 package com.echo.filter.option;
 
 /**
- * Enum for swim lesson validity filter options.
+ * Enum for swim lesson filter options.
  */
 public enum SwimLessonFilterOption implements FilterOption {
-    SHOW_VALID("Campers with valid swim lessons", true),
-    SHOW_FLAGGED("Campers with swim lesson mismatches", true);
+    SHOW_VALID("Swim lessons valid", true),
+    SHOW_FLAGGED("Swim lessons mismatch", true);
 
     private final String label;
     private final boolean defaultState;

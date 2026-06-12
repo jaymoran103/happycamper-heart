@@ -20,7 +20,7 @@ import com.echo.ui.filter.FilterPanelFactory;
  */
 public class SwimLessonFilter implements RosterFilter {
     private static final String FILTER_ID = "swimlesson";
-    public static final String FILTER_NAME = "Swim Lesson Validity";
+    public static final String FILTER_NAME = "Swim Lessons";
 
     private boolean showValidCampers = true;
     private boolean showFlaggedCampers = true;

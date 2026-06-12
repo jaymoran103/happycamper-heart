@@ -84,21 +84,21 @@ public class SwimLevelFeatureTest {
     }
 
     @Test
-    @DisplayName("Swim lesson validity: red swimmer without lessons is flagged")
+    @DisplayName("Swim lessons: red swimmer without lessons is flagged")
     public void testSwimLessonRedMissing() {
         Camper camper = applySingleCamper("Red", "Archery", "Sports", null);
         assertEquals(SwimLevelFeature.FLAG_RED_MISSING, camper.getValue(RosterHeader.SWIMLESSON.standardName));
     }
 
     @Test
-    @DisplayName("Swim lesson validity: non-red assigned lessons is flagged")
+    @DisplayName("Swim lessons: non-red assigned lessons is flagged")
     public void testSwimLessonNonRedAssigned() {
         Camper camper = applySingleCamper("Blue", "Swimming", "Sailing", null);
         assertEquals(SwimLevelFeature.FLAG_NONRED_ASSIGNED, camper.getValue(RosterHeader.SWIMLESSON.standardName));
     }
 
     @Test
-    @DisplayName("Swim lesson validity: red with lessons and non-red without are clean")
+    @DisplayName("Swim lessons: red with lessons and non-red without are clean")
     public void testSwimLessonClean() {
         Camper redWithLessons = applySingleCamper("Red", "Swimming", "Archery", null);
         assertEquals(com.echo.domain.DataConstants.DISPLAY_EMPTY,

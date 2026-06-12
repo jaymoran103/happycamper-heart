@@ -39,8 +39,8 @@ public enum RosterHeader {
 
     // Swim Level Feature Columns
     SWIMCOLOR("SwimColor",true,"SwimColor",null),
-    SWIMCONFLICTS("Swim Conflicts",true),
-    SWIMLESSON("Swim Lesson Validity",true),
+    SWIMCONFLICTS("Aquatic Conflicts",true),
+    SWIMLESSON("Swim Lessons",true),
     ;
 
 

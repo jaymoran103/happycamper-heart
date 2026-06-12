@@ -39,8 +39,8 @@ public class SwimLevelFeature implements RosterFeature {
     // The activity that represents required swim lessons. Red swimmers are expected to be
     // assigned it; non-red swimmers being assigned it is a likely mistake. See docs/sprint-conventions.md (C1).
     public static final String SWIM_LESSON_ACTIVITY = "Swimming";
-    public static final String FLAG_RED_MISSING = "Red swimmer missing lessons";
-    public static final String FLAG_NONRED_ASSIGNED = "Non-red assigned lessons";
+    public static final String FLAG_RED_MISSING = "Missing lessons";
+    public static final String FLAG_NONRED_ASSIGNED = "Assigned lessons";
 
 
 

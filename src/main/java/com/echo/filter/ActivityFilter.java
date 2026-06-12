@@ -23,7 +23,7 @@ import com.echo.ui.filter.CollapsibleFilterPanel;
  */
 public class ActivityFilter implements RosterFilter {
     private static final String FILTER_ID = "activity-select";
-    public static final String FILTER_NAME = "Activity";
+    public static final String FILTER_NAME = "Activity Selector";
 
     /** Round scope sentinel meaning "any of R1/R2/R3". */
     public static final int ROUND_ANY = 0;

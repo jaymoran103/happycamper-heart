@@ -7,8 +7,8 @@ public enum ProgramFilterOption implements FilterOption {
 
 
     // Camper options for inconsistent programs
-    SHOW_MISSING_CAMPERS("Show campers missing activities", true),
-    SHOW_COMPLETE_CAMPERS("Show campers with all activities", true);
+    SHOW_MISSING_CAMPERS("Missing assignments", true),
+    SHOW_COMPLETE_CAMPERS("Complete assignments", true);
     
     private final String label;
     private final boolean defaultState;

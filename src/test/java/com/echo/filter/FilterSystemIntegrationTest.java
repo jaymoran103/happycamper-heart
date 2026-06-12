@@ -72,11 +72,12 @@ public class FilterSystemIntegrationTest {
         filterManager.createFiltersForRoster(roster);
 
         // Verify the correct filters were created (incl. the always-on universal search, B1)
-        assertEquals(4, filterManager.getFilterCount());
+        assertEquals(5, filterManager.getFilterCount());
         assertNotNull(filterManager.getFilter("assignment"));
         assertNotNull(filterManager.getFilter("textsearch"));
         assertNotNull(filterManager.getFilter("program-list"));
         assertNotNull(filterManager.getFilter("preference"));
+        assertNotNull(filterManager.getFilter("activity-select"));
     }
 
     @Test
