@@ -197,24 +197,32 @@ public class PreferenceFeatureUtils {
      * @return Ordinal label such as "1st", "3rd", "10th", or "—" for 0/non-preference
      */
     static String pointsToRankLabel(int points) {
+        
         if (points <= 0) {
             return "—";
         }
         int rank = PreferenceFeature.PREFERENCE_COUNT + 1 - points;
-        int mod100 = rank % 100;
-        int mod10 = rank % 10;
-        String suffix;
-        if (mod100 >= 11 && mod100 <= 13) {
-            suffix = "th";
-        } else {
-            suffix = switch (mod10) {
-                case 1 -> "st";
-                case 2 -> "nd";
-                case 3 -> "rd";
-                default -> "th";
-            };
-        }
-        return rank + suffix;
+
+        return String.valueOf(rank);
+
+        // cut suffix logic for slimmer display: 
+        // TODO: decide if this is cut permanently
+
+
+        // int mod100 = rank % 100;
+        // int mod10 = rank % 10;
+        // String suffix;
+        // if (mod100 >= 11 && mod100 <= 13) {
+        //     suffix = "th";
+        // } else {
+        //     suffix = switch (mod10) {
+        //         case 1 -> "st";
+        //         case 2 -> "nd";
+        //         case 3 -> "rd";
+        //         default -> "th";
+        //     };
+        // }
+        // return rank + suffix;
     }
 
     /**

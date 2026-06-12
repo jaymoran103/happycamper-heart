@@ -29,10 +29,12 @@ public enum RosterHeader {
 
     // Preference Feature Columns
     PREFERENCES("Activity Preferences",false,"Activity Preferences",null),
+    UNFULFILLED_PREFERENCES("Unfulfilled Preferences",false),
+
     PREFERENCE_SCORE("Preference Score",true),
     PREFERENCE_PERCENTILE("Preference Percentile",false),
     UNREQUESTED_ACTIVITIES("Unrequested Activities",true),
-    UNFULFILLED_PREFERENCES("Unfulfilled Preferences",false),
+    
     SCORE_BY_ROUND("Preference by Round",false),
 
     // CAMPER_ID(),

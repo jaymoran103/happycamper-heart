@@ -117,10 +117,10 @@ class PreferenceFeatureUtilsTest {
 
     @ParameterizedTest
     @CsvSource({
-        "10, 1st",
-        "9, 2nd",
-        "8, 3rd",
-        "1, 10th",
+        "10, 1",
+        "9, 2",
+        "8, 3",
+        "1, 10",
         "0, —"
     })
     @DisplayName("Test points-to-rank ordinal label")
@@ -129,7 +129,7 @@ class PreferenceFeatureUtilsTest {
     }
 
     @Test
-    @DisplayName("Round points 10,0,8 render as 1st, —, 3rd")
+    @DisplayName("Round points 10,0,8 render as 1, —, 3")
     void testRoundLabelRow() {
         int[] roundPoints = {10, 0, 8};
         StringBuilder sb = new StringBuilder();
@@ -137,7 +137,7 @@ class PreferenceFeatureUtilsTest {
             sb.append(PreferenceFeatureUtils.pointsToRankLabel(roundPoints[i]));
             if (i < roundPoints.length - 1) sb.append(", ");
         }
-        assertEquals("1st, —, 3rd", sb.toString());
+        assertEquals("1, —, 3", sb.toString());
     }
 
     @Test
