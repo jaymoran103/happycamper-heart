@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HappyCamper — Workflow Prototype</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="mode-setup">
+  <!-- Control bar: minimal in setup mode, full in roster mode -->
+  <header class="control-bar">
+    <div class="brand">
+      <span class="logo">⛺</span>
+      <span class="title">HappyCamper</span>
+      <span class="badge">demo-2</span>
+    </div>
+
+    <div class="controls roster-only">
+      <button class="btn" id="open-workflow">⚙ Imports &amp; checks</button>
+      <div class="search">
+        <input id="search" type="search" placeholder="Search campers…" autocomplete="off">
+      </div>
+      <button class="btn" data-drawer="columns">Columns</button>
+      <button class="btn" data-drawer="view">View settings</button>
+    </div>
+  </header>
+
+  <div class="stage">
+
+    <!-- ═══════════ GUIDED WORKFLOW ═══════════
+         Centered card column in setup mode; slides in as a left side panel in roster mode. -->
+    <aside class="workflow" id="workflow">
+      <div class="workflow-scroll">
+        <div class="wf-intro">
+          <h1>HappyCamper</h1>
+          <p>Session analysis pipeline — configure, import, run, review, then open the roster.</p>
+        </div>
+        <div class="workflow-panel-head">
+          <span>Imports &amp; checks</span>
+          <button class="icon-btn" id="close-workflow" aria-label="Close">✕</button>
+        </div>
+
+        <!-- 1 · SETUP -->
+        <section class="card">
+          <div class="card-head"><span class="step-n">1</span> Setup</div>
+          <div class="card-cols">
+            <div class="card-col">
+              <p class="col-heading">Features</p>
+              <div class="feature-list" id="feature-list">
+                <label class="feature-item"><input type="checkbox" value="activity" checked disabled> Activity assignments <span class="req">required</span></label>
+                <label class="feature-item"><input type="checkbox" value="program" checked> Program inference</label>
+                <label class="feature-item"><input type="checkbox" value="preference" checked> Preference analysis</label>
+                <label class="feature-item"><input type="checkbox" value="swimlevel" checked> Swim validation</label>
+              </div>
+            </div>
+            <div class="card-col">
+              <p class="col-heading">Configuration</p>
+              <div class="config-head">
+                <span class="config-name">Summer 2026 <span class="sub">active</span></span>
+              </div>
+              <div class="chip-row">
+                <span class="chip">Programs <span class="chip-n">4</span></span>
+                <span class="chip">Electives <span class="chip-n">12</span></span>
+                <span class="chip">Camp settings</span>
+              </div>
+              <p class="muted config-note">Config editing is stubbed in this prototype.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2 · IMPORT -->
+        <section class="card">
+          <div class="card-head"><span class="step-n">2</span> Import</div>
+          <div class="card-body">
+            <div class="drop-zone" id="drop-zone">
+              <p><strong>Drop roster CSVs here</strong> — or <button type="button" class="link-btn" id="browse-btn">browse files</button></p>
+              <p class="hint">Drop one or both CSVs. Each file's headers are checked and routed to the camper or activity slot automatically.</p>
+            </div>
+            <div class="file-slots">
+              <div class="file-slot" id="slot-camper" title="Click to set the camper roster">
+                <span class="slot-dot idle"></span>
+                <span class="slot-name">Camper roster — not selected</span>
+                <span class="slot-type">CSV</span>
+              </div>
+              <div class="file-slot" id="slot-activity" title="Click to set the activity roster">
+                <span class="slot-dot idle"></span>
+                <span class="slot-name">Activity roster — not selected</span>
+                <span class="slot-type">CSV</span>
+              </div>
+            </div>
+            <div class="slot-tools hidden" id="slot-tools">
+              <button type="button" class="link-btn" id="swap-slots">⇅ Swap roles</button>
+              <button type="button" class="link-btn" id="clear-files">Clear files</button>
+            </div>
+            <div class="demo-row">
+              <select id="demo-select"><option value="">Load a bundled demo…</option></select>
+              <span class="muted">— quickest way to try it</span>
+            </div>
+            <input type="file" id="file-input" accept=".csv" multiple hidden>
+            <input type="file" id="file-input-single" accept=".csv" hidden>
+          </div>
+        </section>
+
+        <!-- 3 · RUN -->
+        <section class="card">
+          <div class="card-head"><span class="step-n">3</span> Run</div>
+          <div class="card-body">
+            <button class="run-btn" id="run-btn">▶ Run analysis</button>
+            <div id="run-status" class="run-status muted hidden"></div>
+            <div class="warnings-head hidden" id="warnings-head">Warnings</div>
+            <div id="warning-list" class="warning-list"></div>
+          </div>
+        </section>
+
+        <!-- 4 · RESULTS -->
+        <section class="card hidden" id="card-results">
+          <div class="card-head"><span class="step-n">4</span> Results</div>
+          <div class="card-body">
+            <div id="results-blocks"></div>
+            <div class="result-actions">
+              <button class="btn-primary" id="view-roster-btn">View roster →</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </aside>
+    <div class="workflow-backdrop" id="workflow-backdrop"></div>
+
+    <!-- ═══════════ ROSTER VIEW ═══════════ -->
+    <aside class="sidebar" id="sidebar">
+      <h2>Filters</h2>
+      <div id="filter-groups" class="filter-groups">
+        <p class="muted">Run the workflow to see filters.</p>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div id="banner" class="banner hidden"></div>
+      <div id="table-wrap" class="table-wrap">
+        <table id="roster-table">
+          <thead><tr id="table-head"></tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </main>
+
+    <!-- Drawers: Columns / View settings (inline, non-modal) -->
+    <section class="drawer hidden" id="drawer">
+      <div class="drawer-head">
+        <span id="drawer-title"></span>
+        <button class="icon-btn" id="drawer-close" aria-label="Close">✕</button>
+      </div>
+      <div class="drawer-panel hidden" id="panel-columns">
+        <p class="muted">Show or hide columns.</p>
+        <div class="drawer-actions">
+          <button class="link-btn" id="cols-all">Select all</button>
+          <button class="link-btn" id="cols-none">Clear</button>
+        </div>
+        <div id="column-list" class="column-list"></div>
+      </div>
+      <div class="drawer-panel hidden" id="panel-view">
+        <label class="toggle"><input type="checkbox" id="opt-striping" checked> Row striping</label>
+        <label class="toggle"><input type="checkbox" id="opt-highlight"> Highlight empty cells</label>
+        <label class="field">Empty-cell placeholder
+          <input type="text" id="opt-placeholder" value="—" maxlength="8">
+        </label>
+      </div>
+    </section>
+  </div>
+
+  <footer class="status-bar">
+    <span id="status-count">No roster loaded</span>
+    <span id="status-warnings" class="status-warnings"></span>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

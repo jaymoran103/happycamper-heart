@@ -39,3 +39,10 @@ HappyCamper — Java Swing desktop app for camp roster validation. This repo is 
 - GitHub Release assets are **versionless** (`HappyCamper-windows.msi` etc.) so `releases/latest/download/...` links in README/landing page never change
 - Landing page: `docs/index.html` (GitHub Pages from `/docs`); shows version via live API fetch — no redeploy needed per release
 - Demo data: `demo-data/` zipped by CI into `HappyCamper-demo-data.zip` release asset
+
+## Command Teaching Rules
+
+Before providing any CLI command, output these three concise sections to keep the user in the loop:
+1. **Context**: Why this command is needed now.
+2. **Syntax**: Breakdown of the command and its flags.
+3. **Risks/Checks**: What to verify or backup before executing (e.g., data loss, git state).

@@ -39,6 +39,13 @@ public class HappyCamper {
     private static MainWindow mainWindowInstance;
 
 
+    /** Builds the service trio shared by the Swing and web entry points. */
+    private static RosterService createRosterService() {
+        ImportService importService = new ImportService();
+        ExportService exportService = new ExportService();
+        return new RosterService(importService, exportService);
+    }
+
     public static MainWindow setupApp(boolean andStart){
         // Set look and feel
         try {
@@ -48,9 +55,7 @@ public class HappyCamper {
         }
 
         // Create services
-        ImportService importService = new ImportService();
-        ExportService exportService = new ExportService();
-        RosterService rosterService = new RosterService(importService, exportService);
+        RosterService rosterService = createRosterService();
 
         // Create UI immediately instead of using invokeLater
         createSingleWindow(rosterService);
@@ -91,12 +96,27 @@ public class HappyCamper {
         if (args.length==0){
             setupApp(true);
         }
+        else if (args.length>=1 && args[0].equals("--web")){
+            startWebPrototype();
+        }
         else if (args.length==1 && args[0].matches("^-?\\d+$")){
             mainTest(args);
         }
         else {
             System.err.println("Invalid arguments");
-            System.out.println("Expects a single integer indicating test preset");
+            System.out.println("Expects no args (Swing UI), '--web' (browser prototype), or a single integer (test preset)");
+        }
+    }
+
+    /**
+     * Launches the experimental browser-based UI prototype instead of the Swing window.
+     * Reuses the same {@link RosterService} core; see {@link com.echo.web.WebServer}.
+     */
+    public static void startWebPrototype() {
+        try {
+            new com.echo.web.WebServer(createRosterService()).start();
+        } catch (java.io.IOException e) {
+            System.err.println("Failed to start web prototype: " + e.getMessage());
         }
     }
 

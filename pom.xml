@@ -77,9 +77,22 @@
 
     <build>
         <resources>
+            <!-- Web prototype assets: NO filtering — JS template literals use ${...},
+                 which Maven resource filtering would otherwise try to interpolate. -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>web/**</include>
+                </includes>
+            </resource>
+            <!-- Everything else is filtered (e.g. version.properties). -->
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
+                <excludes>
+                    <exclude>web/**</exclude>
+                </excludes>
             </resource>
         </resources>
         <plugins>
