@@ -1,10 +1,12 @@
 # HappyCamper
 
-HappyCamper is a roster validation app created by Jay Moran in 2025. This repository is intended as a simple access point for summer leaders in 2026, best accessed [here](https://jaymoran103.github.io/happycamper-heart/docs/)
+> **Camp staff:** head to the [downloads page](https://jaymoran103.github.io/happycamper-heart/docs/) to get the latest installer. No technical setup needed. Message Jay on WhatsApp if you have questions!
 
-This README is intentionally non-technical. More top-level documentation can be found in the original [public repository](https://github.com/jaymoran103/happycamper-public). For the most up to date implementation (assertion-based validation checks, modern web UI, and advanced preference reporting), contact Jay directly at [jaymorandev@gmail.com](mailto:jaymorandev@gmail.com). 
+HappyCamper is a Java Swing desktop app for camp roster validation. It cross-references camper and activity rosters to surface scheduling problems: activity conflicts, swim level mismatches, unfulfilled preferences, and more.
 
-Some experimental features will be added to this repository, per 2026 leaders' requests. The most up-to-date version will remain accessible through the links below, as well as the download page linked above. A more permanent implementation of said features, with cleaner architecture and a more modern UI is in the works.
+This repository serves as a **rapid-prototype distribution point** throughout the early 2026 summer season — features are shipped directly to staff for real-world feedback, with git discipline and architecture taking a back seat to iteration speed. This approach was intentional: the goal is learn fast with active users, not to build clean, optimized software. (yet)
+
+The results of that work inform **[happycamper-v3](https://github.com/jaymoran103/happycamper-v3)**, where development continues with proper branching, PRs, and documentation.
 
 ## Download & Install
 
