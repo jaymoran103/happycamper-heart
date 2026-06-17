@@ -115,7 +115,8 @@ public class TableLook {
         //If column matches a problem column, highlighting rules are reversed, so any data is highlighted
         boolean isProblemColumn = columnName.equals(RosterHeader.UNREQUESTED_ACTIVITIES.standardName)
                                 || columnName.equals(RosterHeader.SWIMCONFLICTS.standardName)
-                                || columnName.equals(RosterHeader.SWIMLESSON.standardName);
+                                || columnName.equals(RosterHeader.SWIMLESSON.standardName)
+                                || columnName.equals(RosterHeader.DUPLICATE_ACTIVITY.standardName);
 
         // XOR means that a problem column with data OR a normal column without are both highlighted                    
         return isProblemColumn ^ DataConstants.isEmpty(cellValue);                     
