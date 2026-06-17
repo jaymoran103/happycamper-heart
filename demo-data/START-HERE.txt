@@ -68,7 +68,8 @@ steps in the validation and revision process.
 1. activity-s1v1-missingcabin.csv – lacks assignments for Featherstone lodge, due to lack of input preferences. Discovered while exploring HappyCamper results. Unknown at the time: this roster also lacks swim assignments
 2. activity-s1v2-missingswimlessons.csv – lacks swimming assignments, discovered while exploring HappyCamper results and wondering why swimming had no assignees. Main motivator for new activity search feature. 
 3. activity-s1v3-complete.csv – resulting roster once above issues were rectified
-4. activity-s1v3-tuesdayswitches.csv – roster after second-day swaps were made. No monumental changes, included for posterity.
+4. activity-s1v4-tuesdayswitches.csv – roster after second-day swaps were made. No monumental changes, included for posterity.
+5. activity-s1v5-duplicatesdoctored – doctored version of v4, swapping some activities to demo the new duplicate detection feature.
 
 
 -----------------------------------------------------
