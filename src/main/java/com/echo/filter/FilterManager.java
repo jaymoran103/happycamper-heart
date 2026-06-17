@@ -159,6 +159,9 @@ public class FilterManager {
             addFilter(new SwimLevelFilter());
             addFilter(new SwimLessonFilter());
         }
+        if (roster.hasFeature("duplicateactivity")) {
+            addFilter(new DuplicateActivityFilter());
+        }
         if (roster.hasFeature("activity")) {
             addFilter(new ActivityFilter());
         }

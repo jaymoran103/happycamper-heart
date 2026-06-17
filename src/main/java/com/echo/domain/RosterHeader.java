@@ -26,6 +26,7 @@ public enum RosterHeader {
     ROUND_2("Round 2",true),
     ROUND_3("Round 3",true),
     ROUND_COUNT("Rounds Assigned",false),
+    DUPLICATE_ACTIVITY("Duplicate Activities",true),
 
     // Preference Feature Columns
     PREFERENCES("Activity Preferences",false,"Activity Preferences",null),
