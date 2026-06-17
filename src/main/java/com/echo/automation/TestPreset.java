@@ -52,6 +52,14 @@ public enum TestPreset {
         6
     ),
 
+    DEMO_S1V5(2605,
+        "Anonymized 2026 data with switches since v3.",
+        TestFiles.DEMO_2026_CAMPERS_S1,
+        TestFiles.DEMO_2026_ACTIVITIES_S1V5,
+        new String[]{"activity", "program", "swimlevel", "preference", "duplicateactivity"},
+        6
+    ),
+
     MINI_NORMAL(1, TestFiles.MINI_CAMPERS, TestFiles.MINI_ACTIVITIES, 1,
             "Normal pair of mini rosters. 3 campers, 3 total assignments"),
     MINI_MALFORMED_EXTRA(2, TestFiles.MINI_CAMPERS_EXTRA_CELL, TestFiles.MINI_ACTIVITIES, 1,
