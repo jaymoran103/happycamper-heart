@@ -55,7 +55,8 @@ public enum TestFiles {
     DEMO_2026_ACTIVITIES_S1V1("demoRosters", "activity-s1v1-missingcabin.csv"),
     DEMO_2026_ACTIVITIES_S1V2("demoRosters", "activity-s1v2-missingswimlessons.csv"),
     DEMO_2026_ACTIVITIES_S1V3("demoRosters", "activity-s1v3-complete.csv"),
-    DEMO_2026_ACTIVITIES_S1V4("demoRosters", "activity-s1v4-tuesdayswitches.csv");
+    DEMO_2026_ACTIVITIES_S1V4("demoRosters", "activity-s1v4-tuesdayswitches.csv"),
+    DEMO_2026_ACTIVITIES_S1V5("demoRosters", "activity-s1v5-duplicatesdoctored.csv");
     
 
     

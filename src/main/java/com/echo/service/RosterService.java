@@ -10,6 +10,7 @@ import com.echo.domain.CamperRoster;
 import com.echo.domain.EnhancedRoster;
 import com.echo.domain.RosterHeader;
 import com.echo.feature.ActivityFeature;
+import com.echo.feature.DuplicateActivityFeature;
 import com.echo.feature.PreferenceFeature;
 import com.echo.feature.RosterFeature;
 import com.echo.feature.SwimLevelFeature;
@@ -66,6 +67,7 @@ public class RosterService {
 
         availableFeatures.add(new PreferenceFeature());
         availableFeatures.add(new SwimLevelFeature());
+        availableFeatures.add(new DuplicateActivityFeature());
         // Add additional features here
     }
 
