@@ -19,6 +19,7 @@ public final class ViewPresetStore {
 
     public LinkedHashMap<String, LinkedHashMap<String, Boolean>> getPresets() { return presets; }
 
+    /** Store a preset under name as a defensive copy of the provided overrides. */
     public void putPreset(String name, LinkedHashMap<String, Boolean> overrides) {
         presets.put(name, new LinkedHashMap<>(overrides));
     }
@@ -27,6 +28,7 @@ public final class ViewPresetStore {
 
     public boolean hasPreset(String name) { return presets.containsKey(name); }
 
+    /** Return the overrides for the named preset, or an empty map if absent (never null). */
     public LinkedHashMap<String, Boolean> getOverrides(String name) {
         LinkedHashMap<String, Boolean> ov = presets.get(name);
         return ov == null ? new LinkedHashMap<>() : ov;

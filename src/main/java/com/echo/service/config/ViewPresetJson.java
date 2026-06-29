@@ -13,6 +13,7 @@ public final class ViewPresetJson {
 
     // ---------- write ----------
 
+    /** Serialize a ViewPresetStore to a canonical JSON string matching the file schema. */
     public static String toJson(ViewPresetStore store) {
         StringBuilder sb = new StringBuilder(256);
         sb.append("{\n");
@@ -42,6 +43,7 @@ public final class ViewPresetJson {
         return sb.toString();
     }
 
+    /** Escape a string value for JSON output, handling standard sequences and control characters. */
     private static String escape(String s) {
         StringBuilder b = new StringBuilder(s.length() + 8);
         for (int i = 0; i < s.length(); i++) {
@@ -63,6 +65,7 @@ public final class ViewPresetJson {
 
     // ---------- read ----------
 
+    /** Parse a JSON string into a ViewPresetStore; throws IllegalArgumentException on structural errors. */
     public static ViewPresetStore parse(String json) {
         if (json == null) throw new IllegalArgumentException("null json");
         P p = new P(json);
@@ -99,6 +102,7 @@ public final class ViewPresetJson {
 
         P(String s) { this.s = s; }
 
+        /** Entry point: parse the full input as a single value, rejecting trailing content. */
         Object parseValueTop() {
             ws();
             Object val = value();
@@ -107,6 +111,7 @@ public final class ViewPresetJson {
             return val;
         }
 
+        /** Dispatch to the appropriate sub-parser based on the next non-whitespace character. */
         private Object value() {
             ws();
             if (i >= s.length()) throw err("unexpected end");
@@ -123,6 +128,7 @@ public final class ViewPresetJson {
             };
         }
 
+        /** Parse a JSON object, consuming '{', key-value pairs, and closing '}'. */
         private Map<String, Object> object() {
             expect('{');
             LinkedHashMap<String, Object> m = new LinkedHashMap<>();
@@ -143,6 +149,7 @@ public final class ViewPresetJson {
             return m;
         }
 
+        /** Parse a quoted JSON string, expanding all standard escape sequences. */
         private String string() {
             expect('"');
             StringBuilder b = new StringBuilder();
@@ -175,6 +182,7 @@ public final class ViewPresetJson {
             return b.toString();
         }
 
+        /** Parse a JSON number, returning Long for integers or Double otherwise. */
         private Object number() {
             int start = i;
             if (peek() == '-') i++;
@@ -188,21 +196,32 @@ public final class ViewPresetJson {
             }
         }
 
+        /** Parse a true or false literal. */
         private Object bool() {
             if (s.startsWith("true", i)) { i += 4; return Boolean.TRUE; }
             if (s.startsWith("false", i)) { i += 5; return Boolean.FALSE; }
             throw err("bad literal");
         }
 
+        /** Parse a null literal, returning Java null. */
         private Object nul() {
             if (s.startsWith("null", i)) { i += 4; return null; }
             throw err("bad literal");
         }
 
+        /** Advance past all whitespace at the current position. */
         private void ws() { while (i < s.length() && Character.isWhitespace(s.charAt(i))) i++; }
+
+        /** Return the character at the current position without consuming it. */
         private char peek() { if (i >= s.length()) throw err("unexpected end"); return s.charAt(i); }
+        
+        /** Consume and return the character at the current position. */
         private char next() { if (i >= s.length()) throw err("unexpected end"); return s.charAt(i++); }
+        
+        /** Consume the next character, throwing if it doesn't match the expected one. */
         private void expect(char c) { if (next() != c) throw err("expected '" + c + "'"); }
+        
+        /** Build an IllegalArgumentException annotated with the current parse position. */
         private IllegalArgumentException err(String msg) { return new IllegalArgumentException("JSON parse error at " + i + ": " + msg); }
     }
 }
