@@ -49,9 +49,10 @@ public class ColumnVisibilityDialog extends InputsDialog {
         this.table = table;
 
         // Store references to selectors
-        presetSelector        = (PresetSelector) selectors[0];
-        actionButtonSelector  = (ActionButtonSelector) selectors[1];
-        columnVisibilitySelector = (CheckBoxSelector) selectors[2];
+        actionButtonSelector  = (ActionButtonSelector) selectors[0];
+        columnVisibilitySelector = (CheckBoxSelector) selectors[1];
+        presetSelector        = (PresetSelector) selectors[2];
+
         columnSizingSelector  = (RadioButtonSelector<ColumnSizingOption>) selectors[3];
         customWidthSelector   = (NumberInputSelector) selectors[4];
 
@@ -109,7 +110,7 @@ public class ColumnVisibilityDialog extends InputsDialog {
         CheckBoxSelector visibilitySelector = new CheckBoxSelector("Column Visibility", columnMap, false);
 
         PresetSelector presetSelector = new PresetSelector(
-            "Presets", presetService, visibilitySelector, roster.getAllHeaders());
+            "Column Presets", presetService, visibilitySelector, roster.getAllHeaders());
 
         // Create action buttons for column visibility
         ActionButtonSelector actionSelector = new ActionButtonSelector(
@@ -140,9 +141,10 @@ public class ColumnVisibilityDialog extends InputsDialog {
 
 
         return new InputSelector<?>[] {
-            presetSelector,      // [0]
-            actionSelector,      // [1]
-            visibilitySelector,  // [2]
+            actionSelector,      // [0]
+            visibilitySelector,  // [1]
+            presetSelector,      // [2]
+
             sizingSelector,      // [3]
             widthSelector        // [4]
         };
