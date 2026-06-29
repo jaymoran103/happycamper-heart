@@ -126,13 +126,18 @@
     </aside>
     <div class="workflow-backdrop" id="workflow-backdrop"></div>
 
-    <!-- ═══════════ ROSTER VIEW ═══════════ -->
+    <!-- ═══════════ ROSTER VIEW ═══════════
+         Resizable filter sidebar + table, echoing the desktop's split-pane relationship. -->
     <aside class="sidebar" id="sidebar">
-      <h2>Filters</h2>
+      <div class="sidebar-head">
+        <h2>Filters</h2>
+        <button class="link-btn hidden" id="clear-filters">Clear all</button>
+      </div>
       <div id="filter-groups" class="filter-groups">
         <p class="muted">Run the workflow to see filters.</p>
       </div>
     </aside>
+    <div class="divider" id="divider" title="Drag to resize · double-click to reset"></div>
 
     <main class="content">
       <div id="banner" class="banner hidden"></div>
@@ -160,7 +165,7 @@
       </div>
       <div class="drawer-panel hidden" id="panel-view">
         <label class="toggle"><input type="checkbox" id="opt-striping" checked> Row striping</label>
-        <label class="toggle"><input type="checkbox" id="opt-highlight"> Highlight empty cells</label>
+        <label class="toggle"><input type="checkbox" id="opt-highlight" checked> Highlight problem &amp; empty cells</label>
         <label class="field">Empty-cell placeholder
           <input type="text" id="opt-placeholder" value="—" maxlength="8">
         </label>

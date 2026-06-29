@@ -22,8 +22,11 @@ const state = {
   search: "",
   filters: {},
   sort: { header: null, dir: 1 },
-  view: { striping: true, highlightEmpty: false, placeholder: "—" },
+  view: { striping: true, highlightEmpty: true, placeholder: "—" },
+  problemHeaders: new Set(), // columns the desktop flags when they HAVE data (XOR highlight)
 };
+
+const SIDEBAR_DEFAULT = 260, SIDEBAR_MIN = 180, SIDEBAR_MAX = 480;
 
 const FILTER_PRIORITY = ["Cabin", "Program", "Session", "Rounds Assigned", "Swim Color", "SwimColor", "Camp Grade", "Grade", "Gender"];
 
@@ -118,8 +121,33 @@ async function init() {
   el("opt-placeholder").addEventListener("input", (e) => { state.view.placeholder = e.target.value; renderTable(); });
   el("cols-all").addEventListener("click", () => setAllColumns(true));
   el("cols-none").addEventListener("click", () => setAllColumns(false));
+  el("clear-filters").addEventListener("click", clearAllFilters);
+  initDivider();
 
   updateRunButton();
+}
+
+/** Drag the divider to resize the filter sidebar (the desktop split-pane relationship). */
+function initDivider() {
+  const divider = el("divider");
+  const setWidth = (px) => document.documentElement.style.setProperty(
+    "--sidebar-w", Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, px)) + "px");
+  setWidth(SIDEBAR_DEFAULT);
+  divider.addEventListener("dblclick", () => setWidth(SIDEBAR_DEFAULT));
+  divider.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    divider.classList.add("dragging");
+    document.body.classList.add("dragging-divider");
+    const onMove = (ev) => setWidth(ev.clientX - el("sidebar").getBoundingClientRect().left);
+    const onUp = () => {
+      divider.classList.remove("dragging");
+      document.body.classList.remove("dragging-divider");
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  });
 }
 
 // ----------------------------------------------------------------------------- import sources
@@ -269,6 +297,7 @@ function fileToBase64(file) {
 function onRosterReady(data) {
   state.data = data;
   state.columnVisible = new Set(data.visible);
+  state.problemHeaders = new Set(data.problemHeaders || []);
   state.filters = {};
   state.search = "";
   state.sort = { header: null, dir: 1 };
@@ -495,13 +524,20 @@ function buildFilterSidebar() {
   const groups = deriveFilterColumns(state.data);
   if (!groups.length) {
     container.innerHTML = '<p class="muted">No obvious filter columns in this roster.</p>';
+    updateFilterChrome();
     return;
   }
-  for (const group of groups) {
+  groups.forEach((group, idx) => {
     const details = document.createElement("details");
     details.className = "filter-group";
+    details.dataset.header = group.header;
+    if (idx < 3) details.open = true; // first panels expanded, like the desktop default
     const summary = document.createElement("summary");
-    summary.innerHTML = escapeHtml(group.header) + ' <span class="count">' + group.values.length + "</span>";
+    summary.innerHTML =
+      '<span class="chevron">▾</span>' +
+      '<span class="g-name">' + escapeHtml(group.header) + "</span>" +
+      '<span class="active-n hidden"></span>' +
+      '<span class="count">' + group.values.length + "</span>";
     details.appendChild(summary);
     const opts = document.createElement("div");
     opts.className = "filter-options";
@@ -516,7 +552,8 @@ function buildFilterSidebar() {
     }
     details.appendChild(opts);
     container.appendChild(details);
-  }
+  });
+  updateFilterChrome();
 }
 
 function onFilterToggle(header, value, checked) {
@@ -524,6 +561,27 @@ function onFilterToggle(header, value, checked) {
   if (checked) state.filters[header].add(value);
   else state.filters[header].delete(value);
   if (state.filters[header].size === 0) delete state.filters[header];
+  updateFilterChrome();
+  renderTable();
+}
+
+/** Refresh per-group active-count badges and the "Clear all" affordance. */
+function updateFilterChrome() {
+  document.querySelectorAll(".filter-group").forEach((g) => {
+    const set = state.filters[g.dataset.header];
+    const n = set ? set.size : 0;
+    const badge = g.querySelector(".active-n");
+    g.classList.toggle("has-active", n > 0);
+    badge.classList.toggle("hidden", n === 0);
+    badge.textContent = n;
+  });
+  el("clear-filters").classList.toggle("hidden", Object.keys(state.filters).length === 0);
+}
+
+function clearAllFilters() {
+  state.filters = {};
+  document.querySelectorAll(".filter-options input:checked").forEach((cb) => (cb.checked = false));
+  updateFilterChrome();
   renderTable();
 }
 
@@ -587,7 +645,7 @@ function renderTable() {
   const headers = orderedVisibleHeaders();
   const table = el("roster-table");
   table.classList.toggle("striping", state.view.striping);
-  table.classList.toggle("highlight-empty", state.view.highlightEmpty);
+  table.classList.toggle("highlight", state.view.highlightEmpty);
 
   const head = el("table-head");
   head.innerHTML = "";
@@ -612,8 +670,11 @@ function renderTable() {
     for (const h of headers) {
       const td = document.createElement("td");
       const value = row[h];
-      if (isEmpty(value)) { td.classList.add("empty"); td.textContent = state.view.placeholder; }
+      const empty = isEmpty(value);
+      if (empty) { td.classList.add("empty"); td.textContent = state.view.placeholder; }
       else { td.textContent = value; }
+      // Desktop XOR rule: a problem column with data, or a normal column that's empty, is flagged.
+      if (state.problemHeaders.has(h) !== empty) td.classList.add("flag");
       tr.appendChild(td);
     }
     frag.appendChild(tr);

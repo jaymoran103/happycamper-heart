@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.echo.domain.Camper;
 import com.echo.domain.EnhancedRoster;
+import com.echo.domain.RosterHeader;
 import com.echo.logging.RosterWarning;
 import com.echo.logging.RosterWarning.WarningType;
 import com.echo.logging.WarningManager;
@@ -49,6 +50,19 @@ public final class RosterJson {
         appendStringArray(sb, "headers", allHeaders);
         sb.append(',');
         appendStringArray(sb, "visible", visibleHeaders);
+
+        // "Problem" columns — the browser table flags these the way the desktop does: a problem
+        // column is highlighted when it HAS data (the inverse of normal columns). Mirrors the set in
+        // com.echo.ui.component.TableLook so the web view stays faithful to the Swing highlighting.
+        List<String> problemHeaders = new ArrayList<>();
+        for (RosterHeader h : new RosterHeader[] {
+                RosterHeader.UNREQUESTED_ACTIVITIES, RosterHeader.SWIMCONFLICTS, RosterHeader.SWIMLESSON }) {
+            if (allHeaders.contains(h.standardName)) {
+                problemHeaders.add(h.standardName);
+            }
+        }
+        sb.append(',');
+        appendStringArray(sb, "problemHeaders", problemHeaders);
 
         // Enabled features only (the roster records which features actually applied)
         sb.append(",\"features\":[");
