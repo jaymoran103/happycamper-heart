@@ -115,11 +115,11 @@ public class ColumnVisibilityDialog extends InputsDialog {
         // Create action buttons for column visibility
         ActionButtonSelector actionSelector = new ActionButtonSelector(
             "Visibility Controls",
-            new String[] {"Show All", "Hide All", "Reset to Default"},
+            new String[] {"Show All", "Hide All", "Reset to Standard"},
             new Runnable[] {
                 () -> visibility_showAll(roster, visibilitySelector),
                 () -> visibility_hideAll(roster, visibilitySelector),
-                () -> visibility_resetToDefault(roster, visibilitySelector)
+                () -> visibility_resetToStandard(roster, visibilitySelector)
             }
         );
 
@@ -168,7 +168,7 @@ public class ColumnVisibilityDialog extends InputsDialog {
     }
 
 
-    private static void visibility_resetToDefault(EnhancedRoster roster, CheckBoxSelector visibilitySelector){
+    private static void visibility_resetToStandard(EnhancedRoster roster, CheckBoxSelector visibilitySelector){
         visibilitySelector.setValue(VisibilityResolver.resolve(roster.getAllHeaders(), java.util.Map.of()));
     }
 

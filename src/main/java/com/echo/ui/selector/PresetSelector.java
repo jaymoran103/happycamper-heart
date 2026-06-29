@@ -283,7 +283,7 @@ public class PresetSelector extends InputSelector<String> {
 
     private String composeLabel(String name) {
         StringBuilder status = new StringBuilder();
-        if (name.equals(selectedName)) status.append(isDirty() ? "modified" : "applied");
+        if (name.equals(selectedName) && isDirty()) status.append("modified");
         if (name.equals(service.getDefaultName())) {
             if (status.length() > 0) status.append("  ·  ");
             status.append("default");

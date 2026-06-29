@@ -48,6 +48,13 @@ public enum RosterHeader {
 
 
     public final String standardName;
+    /**
+     * Factory/standard visibility baseline for this column — the referent for the
+     * "Reset to Standard" control and {@link Roster#resetHeaderVisibility()}. This is
+     * NOT the user's default <em>preset</em>: the default preset is a separate, opt-in
+     * view that auto-applies on roster load (see
+     * {@code com.echo.service.config.ViewPresetService#getDefaultName()}).
+     */
     public final boolean defaultVisibility; //FUTURE - set private to force use of getter, enabling context-dependent visibility
     public final String camperRosterName;
     public final String activityRosterName;
