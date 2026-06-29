@@ -22,189 +22,157 @@ import com.echo.ui.selector.PresetSelector;
 
 class PresetSelectorTest {
 
+    private static final List<String> HEADERS = List.of("First Name", "Last Name");
+
     private static LinkedHashMap<String,Boolean> visibility(boolean firstNameShown) {
         LinkedHashMap<String,Boolean> m = new LinkedHashMap<>();
         m.put("First Name", firstNameShown); // factory default = false (hidden)
         m.put("Last Name", true);            // factory default = true
         return m;
     }
-
-    private PresetSelector build(Path file, CheckBoxSelector cb) {
-        ViewPresetService svc = new ViewPresetService(file);
-        return new PresetSelector("Presets", svc, cb, List.of("First Name", "Last Name"));
+    private static LinkedHashMap<String,Boolean> ov(String k, boolean v) {
+        LinkedHashMap<String,Boolean> m = new LinkedHashMap<>(); m.put(k, v); return m;
+    }
+    private static List<AbstractButton> buttons(Container c) {
+        List<AbstractButton> r = new ArrayList<>();
+        for (Component x : c.getComponents()) {
+            if (x instanceof AbstractButton b) r.add(b);
+            if (x instanceof Container k) r.addAll(buttons(k));
+        }
+        return r;
+    }
+    /** A labeled toolbar button. */
+    private static AbstractButton button(Container c, String text) {
+        return buttons(c).stream().filter(b -> text.equals(b.getText())).findFirst().orElse(null);
+    }
+    /** A per-row selection radio (empty text), in list order. */
+    private static AbstractButton firstRowRadio(Container c) {
+        return buttons(c).stream().filter(b -> "".equals(b.getText())).findFirst().orElse(null);
+    }
+    private static PresetSelector build(ViewPresetService svc, CheckBoxSelector cb) {
+        return new PresetSelector("Presets", svc, cb, HEADERS);
     }
 
     @Test void applyingSavedPresetUpdatesVisibility(@TempDir Path dir) {
-        Path file = dir.resolve("view-presets.json");
-        ViewPresetService svc = new ViewPresetService(file);
-        LinkedHashMap<String,Boolean> ov = new LinkedHashMap<>(); ov.put("First Name", true);
-        svc.savePreset("Reveal", ov);
-
+        ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
+        svc.savePreset("Reveal", ov("First Name", true));
         CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
-        PresetSelector ps = new PresetSelector("Presets", svc, cb, List.of("First Name", "Last Name"));
-        ps.createPanel(); // builds rows
-        ps.setValue("Reveal"); // apply
-
-        assertTrue(cb.getValue().get("First Name")); // revealed by preset
-        assertFalse(ps.isDirty());                   // freshly applied → clean
+        PresetSelector ps = build(svc, cb);
+        ps.createPanel();
+        ps.setValue("Reveal");
+        assertTrue(cb.getValue().get("First Name"));
+        assertFalse(ps.isDirty());
     }
 
     @Test void togglingVisibilityAfterApplyMarksDirty(@TempDir Path dir) {
-        Path file = dir.resolve("view-presets.json");
-        ViewPresetService svc = new ViewPresetService(file);
-        svc.savePreset("Clean", new LinkedHashMap<>()); // no overrides → equals factory defaults
-
+        ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
+        svc.savePreset("Clean", new LinkedHashMap<>());
         CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
-        PresetSelector ps = new PresetSelector("Presets", svc, cb, List.of("First Name", "Last Name"));
+        PresetSelector ps = build(svc, cb);
         ps.createPanel();
         ps.setValue("Clean");
         assertFalse(ps.isDirty());
-
-        cb.setValue(visibility(true)); // user reveals First Name
+        cb.setValue(visibility(true));
         ps.onWorkingStateChanged();
         assertTrue(ps.isDirty());
     }
 
     @Test void getValueReturnsActivePreset(@TempDir Path dir) {
-        ViewPresetService svc = new ViewPresetService(dir.resolve("view-presets.json"));
+        ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
         svc.savePreset("A", new LinkedHashMap<>());
         CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
-        PresetSelector ps = new PresetSelector("Presets", svc, cb, List.of("First Name", "Last Name"));
+        PresetSelector ps = build(svc, cb);
         ps.createPanel();
         ps.setValue("A");
         assertEquals("A", ps.getValue());
     }
 
-    // -----------------------------------------------------------------------
-    // Group 2 — mutation-path tests
-    // -----------------------------------------------------------------------
-
-    /** Recursively collects all AbstractButton descendants of a Container. */
-    private static List<AbstractButton> collectButtons(Container c) {
-        List<AbstractButton> result = new ArrayList<>();
-        for (Component comp : c.getComponents()) {
-            if (comp instanceof AbstractButton ab) result.add(ab);
-            if (comp instanceof Container sub) result.addAll(collectButtons(sub));
-        }
-        return result;
+    @Test void clickingRowRadioLoadsPresetColumns(@TempDir Path dir) {
+        ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
+        svc.savePreset("Reveal", ov("First Name", true)); // resolves First Name -> true
+        CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
+        PresetSelector ps = build(svc, cb);
+        JPanel panel = ps.createPanel();
+        assertFalse(cb.getValue().get("First Name"));   // hidden before any click
+        AbstractButton radio = firstRowRadio(panel);
+        assertNotNull(radio, "a row selection radio should exist");
+        radio.doClick();                                // click the radio
+        assertTrue(cb.getValue().get("First Name"));    // preset loaded into the checkboxes
+        assertEquals("Reveal", ps.getValue());
     }
 
-    /**
-     * Finds the preset row JPanel inside a container whose direct children include a button
-     * whose text starts with presetName (and is non-empty) AND a "×" delete button.
-     */
-    private static JPanel findPresetRow(Container panel, String presetName) {
-        for (Component comp : panel.getComponents()) {
-            if (comp instanceof JPanel row) {
-                boolean hasName = false, hasDelete = false;
-                for (Component c : row.getComponents()) {
-                    if (c instanceof AbstractButton ab) {
-                        String t = ab.getText();
-                        if (t != null && !t.isEmpty() && t.startsWith(presetName)) hasName = true;
-                        if ("×".equals(t)) hasDelete = true;
-                    }
-                }
-                if (hasName && hasDelete) return row;
-            }
-        }
-        return null;
+    @Test void preSelectsPresetMatchingCurrentColumnsOnOpen(@TempDir Path dir) {
+        ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
+        svc.savePreset("Factory", new LinkedHashMap<>()); // resolves to factory defaults
+        // working set already equals factory defaults
+        CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
+        PresetSelector ps = build(svc, cb);
+        ps.createPanel();                       // no click
+        assertEquals("Factory", ps.getValue()); // pre-selected because columns match
+        assertFalse(ps.isDirty());
     }
 
-    @Test void deletingPresetRemovesItAndClearsActive(@TempDir Path dir) {
-        Path file = dir.resolve("view-presets.json");
-        ViewPresetService svc = new ViewPresetService(file);
-        svc.savePreset("A", new LinkedHashMap<>());
+    @Test void updateSavesCurrentColumnsToActivePreset(@TempDir Path dir) {
+        ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
+        svc.savePreset("Clean", new LinkedHashMap<>());
+        CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
+        PresetSelector ps = build(svc, cb);
+        JPanel panel = ps.createPanel();
+        ps.setValue("Clean");
+        cb.setValue(visibility(true));          // reveal First Name -> diverge
+        ps.onWorkingStateChanged();
+        assertTrue(ps.isDirty());
+        AbstractButton update = button(panel, "Update");
+        assertNotNull(update);
+        assertTrue(update.isEnabled());
+        update.doClick();
+        assertEquals(Boolean.TRUE, svc.getOverrides("Clean").get("First Name"));
+        assertFalse(ps.isDirty());
+    }
+
+    @Test void revertRestoresActivePresetAndClearsDirty(@TempDir Path dir) {
+        ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
+        svc.savePreset("Clean", new LinkedHashMap<>());
+        CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
+        PresetSelector ps = build(svc, cb);
+        JPanel panel = ps.createPanel();
+        ps.setValue("Clean");
+        cb.setValue(visibility(true));
+        ps.onWorkingStateChanged();
+        assertTrue(ps.isDirty());
+        AbstractButton revert = button(panel, "Revert");
+        assertNotNull(revert);
+        revert.doClick();
+        assertFalse(cb.getValue().get("First Name")); // restored to preset's resolved value
+        assertFalse(ps.isDirty());
+    }
+
+    @Test void deleteToolbarButtonRemovesSelectedAndClearsActive(@TempDir Path dir) {
+        ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
+        svc.savePreset("A", ov("First Name", true));
         svc.savePreset("B", new LinkedHashMap<>());
         CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
-        PresetSelector ps = new PresetSelector("Presets", svc, cb, List.of("First Name", "Last Name"));
-        JPanel outerPanel = ps.createPanel();
+        PresetSelector ps = build(svc, cb);
+        JPanel panel = ps.createPanel();
         ps.setValue("A");
         assertEquals("A", ps.getValue());
-
-        Container content = (Container) outerPanel.getComponent(0);
-        JPanel rowA = findPresetRow(content, "A");
-        assertNotNull(rowA, "row for preset A should exist in the panel");
-        AbstractButton del = collectButtons(rowA).stream()
-            .filter(b -> "×".equals(b.getText())).findFirst().orElseThrow();
-        del.doClick();
-
+        AbstractButton delete = button(panel, "Delete");
+        assertNotNull(delete);
+        delete.doClick();
         assertEquals(List.of("B"), svc.listPresets());
         assertNull(ps.getValue());
     }
 
-    @Test void updateSavesCurrentColumnsToActivePreset(@TempDir Path dir) {
-        Path file = dir.resolve("view-presets.json");
-        ViewPresetService svc = new ViewPresetService(file);
-        svc.savePreset("Clean", new LinkedHashMap<>()); // no overrides = factory defaults
-
-        CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
-        PresetSelector ps = new PresetSelector("Presets", svc, cb, List.of("First Name", "Last Name"));
-        JPanel outerPanel = ps.createPanel();
-        ps.setValue("Clean");
-        assertFalse(ps.isDirty());
-
-        cb.setValue(visibility(true));  // First Name = true, deviates from factory default false
-        ps.onWorkingStateChanged();     // marks dirty, triggers rebuild
-        assertTrue(ps.isDirty());
-
-        Container content = (Container) outerPanel.getComponent(0);
-        AbstractButton updateBtn = collectButtons(content).stream()
-            .filter(b -> "Update".equals(b.getText())).findFirst().orElseThrow();
-        assertTrue(updateBtn.isEnabled());
-        updateBtn.doClick();
-
-        // Update persists the deviation: First Name = true (deviates from false factory default)
-        assertTrue(svc.getOverrides("Clean").containsKey("First Name"));
-        assertEquals(Boolean.TRUE, svc.getOverrides("Clean").get("First Name"));
-    }
-
-    @Test void revertRestoresActivePresetAndClearsDirty(@TempDir Path dir) {
-        Path file = dir.resolve("view-presets.json");
-        ViewPresetService svc = new ViewPresetService(file);
-        svc.savePreset("Clean", new LinkedHashMap<>()); // no overrides = factory defaults
-
-        CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
-        PresetSelector ps = new PresetSelector("Presets", svc, cb, List.of("First Name", "Last Name"));
-        JPanel outerPanel = ps.createPanel();
-        ps.setValue("Clean");
-        assertFalse(ps.isDirty());
-
-        cb.setValue(visibility(true));  // dirty: First Name revealed
-        ps.onWorkingStateChanged();
-        assertTrue(ps.isDirty());
-
-        Container content = (Container) outerPanel.getComponent(0);
-        AbstractButton revertBtn = collectButtons(content).stream()
-            .filter(b -> "Revert".equals(b.getText())).findFirst().orElseThrow();
-        revertBtn.doClick();
-
-        // Revert restores cb to the preset's resolved value: First Name = false (factory)
-        assertFalse(cb.getValue().get("First Name"));
-        assertFalse(ps.isDirty());
-    }
-
-    @Test void defaultRadiosUpdateService(@TempDir Path dir) {
-        Path file = dir.resolve("view-presets.json");
-        ViewPresetService svc = new ViewPresetService(file);
+    @Test void setAsDefaultButtonUpdatesService(@TempDir Path dir) {
+        ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
         svc.savePreset("A", new LinkedHashMap<>());
         CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
-        PresetSelector ps = new PresetSelector("Presets", svc, cb, List.of("First Name", "Last Name"));
-        JPanel outerPanel = ps.createPanel();
-
-        Container content = (Container) outerPanel.getComponent(0);
-        JPanel rowA = findPresetRow(content, "A");
-        assertNotNull(rowA, "row for preset A should exist in the panel");
-
-        // The empty-text radio in A's row sets A as default
-        AbstractButton defRadio = collectButtons(rowA).stream()
-            .filter(b -> "".equals(b.getText())).findFirst().orElseThrow();
-        defRadio.doClick();
+        PresetSelector ps = build(svc, cb);
+        JPanel panel = ps.createPanel();
+        ps.setValue("A");
+        AbstractButton setDefault = button(panel, "Set as default");
+        assertNotNull(setDefault);
+        setDefault.doClick();
         assertEquals("A", svc.getDefaultName());
-
-        // The "Default: none" radio clears the default
-        AbstractButton noneRadio = collectButtons(content).stream()
-            .filter(b -> "Default: none".equals(b.getText())).findFirst().orElseThrow();
-        noneRadio.doClick();
-        assertNull(svc.getDefaultName());
     }
 }

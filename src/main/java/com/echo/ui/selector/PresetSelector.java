@@ -12,10 +12,13 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import com.echo.service.config.ViewPresetService;
 import com.echo.service.config.VisibilityResolver;
+import com.echo.ui.dialog.DialogUtils;
 import com.echo.ui.elements.HoverButton;
 import com.echo.ui.elements.HoverRadioButton;
 
@@ -24,9 +27,14 @@ import com.echo.ui.elements.HoverRadioButton;
  * Model: radio = selected preset (selecting also LOADS it into the working CheckBoxSelector);
  * applied/modified/default are DERIVED status shown on the row label; all verbs live in a
  * bottom toolbar acting on the selected row. One working draft, so only the selected preset
- * is ever "modified".
+ * is ever "modified". The panel pre-selects the preset matching the current columns on open,
+ * and resizes to the preset count (recomputed on add/delete).
  */
 public class PresetSelector extends InputSelector<String> {
+
+    // Vertical budget (px) for the title + 3-row toolbar + padding; rows add on top.
+    private static final int CHROME_HEIGHT = 150;
+    private static final int ROW_HEIGHT = 26;
 
     private final ViewPresetService service;
     private final CheckBoxSelector visibilitySelector;
@@ -50,7 +58,7 @@ public class PresetSelector extends InputSelector<String> {
         this.service = service;
         this.visibilitySelector = visibilitySelector;
         this.headers = headers;
-        setComponentHeight(255);
+        setComponentHeight(heightForCount(service.listPresets().size()));
     }
 
     @Override public String getValue() { return selectedName; }
@@ -64,9 +72,7 @@ public class PresetSelector extends InputSelector<String> {
     @Override public boolean hasSelection() { return true; } // never blocks the dialog's Apply
 
     public boolean isDirty() {
-        if (selectedName == null) return false;
-        Map<String, Boolean> applied = service.resolveFor(headers, selectedName);
-        return !applied.equals(visibilitySelector.getValue());
+        return selectedName != null && !workingMatches(selectedName);
     }
 
     public void onWorkingStateChanged() { refresh(); }
@@ -86,6 +92,8 @@ public class PresetSelector extends InputSelector<String> {
         toolbar.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(toolbar);
 
+        // Open already pointing at the preset whose columns match the current view (prefer the default).
+        selectedName = detectCurrentSelection();
         rebuildList();
     }
 
@@ -175,7 +183,7 @@ public class PresetSelector extends InputSelector<String> {
             rowPanel.setOpaque(false);
             rowPanel.setLayout(new BoxLayout(rowPanel, BoxLayout.X_AXIS));
             rowPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
+            rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, ROW_HEIGHT));
 
             HoverRadioButton radio = new HoverRadioButton("");
             radio.setOpaque(false);
@@ -197,6 +205,7 @@ public class PresetSelector extends InputSelector<String> {
         listPanel.revalidate();
         listPanel.repaint();
         refresh();
+        resizeForCount();
     }
 
     /** Lightweight refresh — labels + button enablement, no structural change (radios persist). */
@@ -214,6 +223,62 @@ public class PresetSelector extends InputSelector<String> {
             deleteButton.setEnabled(hasSel);
             setDefaultButton.setEnabled(hasSel);
         }
+    }
+
+    /** Grow/shrink the fixed-size component to fit the current preset count, then reflow the dialog. */
+    /** Grow/shrink to fit the preset count, preserving the dialog-assigned width, then reflow the scroll view. */
+    private void resizeForCount() {
+        int newHeight = heightForCount(service.listPresets().size());
+        int delta = newHeight - componentHeight;
+        setComponentHeight(newHeight);
+        if (cachedPanel == null || delta == 0) return;
+
+        // Preserve the width the parent dialog assigned (NOT STANDARD_COMPONENT_WIDTH, which is wider
+        // than this dialog's content area and caused the box to jump wider on the first resize).
+        int width = cachedPanel.getWidth() > 0
+            ? cachedPanel.getWidth()
+            : (int) cachedPanel.getPreferredSize().getWidth();
+        DialogUtils.fixSize(cachedPanel, new Dimension(width, newHeight));
+
+        // InputsDialog fixes the scroll view's height at construction; grow it by the delta so the
+        // taller panel gets room and the scrollbar updates, without re-packing the window (which widened it).
+        JScrollPane scroll = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, cachedPanel);
+        if (scroll != null) {
+            Component view = scroll.getViewport().getView();
+            if (view != null) {
+                Dimension vp = view.getPreferredSize();
+                view.setPreferredSize(new Dimension(vp.width, vp.height + delta));
+                view.revalidate();
+            }
+            scroll.revalidate();
+            scroll.repaint();
+        } else {
+            cachedPanel.revalidate();
+            cachedPanel.repaint();
+        }
+    }
+
+    private static int heightForCount(int n) {
+        return CHROME_HEIGHT + ROW_HEIGHT * Math.max(1, n);
+    }
+
+    /** The preset whose resolved columns match the current working set, preferring the default. */
+    private String detectCurrentSelection() {
+        List<String> names = service.listPresets();
+        String def = service.getDefaultName();
+        if (def != null && names.contains(def) && workingMatches(def)) return def;
+        for (String name : names) if (workingMatches(name)) return name;
+        return null;
+    }
+
+    /** True if every currently-shown column matches what this preset resolves it to. */
+    private boolean workingMatches(String name) {
+        Map<String, Boolean> resolved = service.resolveFor(headers, name);
+        for (Map.Entry<String, Boolean> e : visibilitySelector.getValue().entrySet()) {
+            Boolean r = resolved.get(e.getKey());
+            if (r == null || r.booleanValue() != e.getValue().booleanValue()) return false;
+        }
+        return true;
     }
 
     private String composeLabel(String name) {
