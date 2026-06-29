@@ -62,4 +62,16 @@ class ViewPresetServiceTest {
         assertTrue(s.listPresets().isEmpty());
         assertNull(s.getDefaultName());
     }
+
+    @Test void newerVersionFileIsQuarantinedAndStartsEmpty(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("view-presets.json");
+        // A structurally VALID file, but a schema version newer than this build supports.
+        Files.writeString(file,
+            "{ \"version\": 2, \"default\": null, \"presets\": { \"P\": { \"overrides\": { \"A\": false } } } }");
+        ViewPresetService s = new ViewPresetService(file); // must not throw
+        assertTrue(s.listPresets().isEmpty());                       // unsupported version => treated as empty
+        assertTrue(Files.exists(dir.resolve("view-presets.bak")));   // original quarantined, not lost
+        s.savePreset("Fresh", ov("A", false));                       // still usable afterward
+        assertEquals(List.of("Fresh"), s.listPresets());
+    }
 }
