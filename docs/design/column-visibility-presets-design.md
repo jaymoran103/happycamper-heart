@@ -10,7 +10,7 @@
 
 ## 1. Context & motivation
 
-HappyCamper is a Java 22 Swing desktop app (Maven) for camp-roster validation. Users open a roster (CSV), and a configurable set of columns is shown. Column visibility today lives **only in memory** for the session — there is **no cross-run persistence anywhere in the app**. The only disk I/O is CSV import/export and a temp JSON file in the web prototype (`com.echo.web.RosterJson`, which hand-rolls dependency-free JSON).
+HappyCamper is a Java 22 Swing desktop app (Maven) for camp-roster validation. Users open a roster (CSV), and a configurable set of columns is shown. Column visibility today lives **only in memory** for the session — there is **no cross-run persistence anywhere in the app**. The only disk I/O today is CSV import/export.
 
 This feature adds **named, persisted presets for column visibility**: a user can save the current column layout under a name ("Swim view", "Medical view", …), re-apply it later, and optionally mark one to auto-apply.
 
@@ -51,7 +51,7 @@ This is the **first permanence-between-runs mechanism in the codebase**. It is d
 | Preset scope | **Visibility only** | Cleanest "view = column set" story; sizing is a live tweak, not a saved view. |
 | Encoding | **Per-column overrides on a curated baseline** (not a flat hide/show list) | Preserves the `RosterHeader` "displayed vs serves-a-purpose-but-hidden" hierarchy; compact; lets presets both hide noise and reveal hidden columns. |
 | Unmentioned columns | **Inherit `RosterHeader.defaultVisibility`** (custom CSV columns → visible) | Forward-compatible: new feature columns appear iff their author set the default; old presets need no migration. |
-| Storage format | **Hand-rolled JSON** (zero new deps), mirroring `RosterJson` | Honors heart's dependency-free ethos + v3/TeaVM-friendliness; JSON ports straight to web `localStorage` (the canary's point). |
+| Storage format | **Hand-rolled JSON** (zero new deps), self-contained | Honors heart's dependency-free ethos + v3/TeaVM-friendliness; JSON ports straight to web `localStorage` (the canary's point). |
 | Storage location | **OS-native app-data dir**, outside the install dir | Survives upgrades for free; good OS citizenship; the cross-platform path logic is exactly what the canary should prove. |
 | Startup behavior | **Opt-in default preset**, applied on roster load via a **forgiving filter** | Smooth "I choose what loads" UX at a tiny failure-surface increment over a pure manual library. |
 | "Reset to Default" | **Unchanged**; remains the privileged factory base layer | It is the referent for overrides, the recovery floor, and the only layer that auto-covers future columns. |
@@ -112,7 +112,9 @@ Resolves and lazily creates the app-data directory, returns the `view-presets.js
 - **Split pure decision from I/O (key for QA):** expose path *resolution* as a pure function — `resolve(osName, env, homeDir) → Path`, with **no** filesystem calls — and keep directory creation/writing in a separate thin method. This is what makes every per-OS branch unit-testable on any host (see §5.4).
 
 ### 5.2 `ViewPresetJson` — hand-rolled read/write
-- **Writer:** trivial; mirror `com.echo.web.RosterJson`'s style (StringBuilder + proper string escaping). No new dependency.
+**Why hand-rolled — on its own legs, not by precedent:** (1) the pom carries **no** JSON dependency and we deliberately won't add one; (2) reflection-based JSON libraries are a liability for the v3 **TeaVM** transpile; (3) the document must drop **verbatim into web `localStorage`**. This is heart's **first** on-disk JSON — a deliberate, self-standing choice. The only real code-surface is the *reader* (the writer is trivial); that risk is owned by the malformed/escape/round-trip tests in the plan plus the corrupt-file quarantine.
+
+- **Writer:** trivial — a small `StringBuilder` with proper string escaping. No new dependency.
 - **Reader:** a small parser scoped to *exactly* this schema (an object with `version`, nullable string `default`, and a `presets` object of `{overrides: {string: bool}}`). It must be **forgiving** — see §6 error handling. Keep the schema deliberately shallow so the parser stays small.
 - (Implementation note: if hand-rolling a robust reader proves disproportionately risky during execution, that is the one place to *pause and reconsider* — but the default decision is dependency-free. Do not silently add a JSON dependency without flagging it; v3/TeaVM-friendliness depends on it.)
 
@@ -203,7 +205,7 @@ It may extend `InputSelector<…>` for visual framing (`createPanel()` gives the
 - `com.echo.ui.dialog.ColumnVisibilityDialog` — `src/main/java/com/echo/ui/dialog/ColumnVisibilityDialog.java`
   - `createSelectors(...)` builds `selectors[]` (currently `[ActionButtonSelector, CheckBoxSelector, RadioButtonSelector, NumberInputSelector]`) — add `PresetSelector`.
   - `visibility_resetToDefault(...)` (line 154) duplicates factory-default logic — extract a shared `factoryDefaultVisibility` helper and reuse it for preset resolution.
-  - `updateSelections()` (line 230) is the existing Apply path — unchanged.
+  - `updateSelections()` (line 231) is the existing Apply path — unchanged.
 
 **Selector framework (for `PresetSelector`):**
 - `com.echo.ui.selector.InputSelector<T>` — `src/main/java/com/echo/ui/selector/InputSelector.java`
@@ -215,14 +217,11 @@ It may extend `InputSelector<…>` for visual framing (`createPanel()` gives the
 - `com.echo.ui.selector.RadioButtonSelector<T>` — idiom to mirror for the single-select default column.
 
 **Domain methods:**
-- `com.echo.domain.RosterHeader.determineHeaderType(String)` (`RosterHeader.java:110`) → enum or `null`; `public final boolean defaultVisibility` (l.50).
+- `com.echo.domain.RosterHeader.determineHeaderType(String)` (`RosterHeader.java:111`) → enum or `null`; `public final boolean defaultVisibility` (l.51).
 - `com.echo.domain.Roster.setHeaderVisibility(String,boolean)` (l.170, only acts on existing keys), `isHeaderVisible(String)` (l.124), `getAllHeaders()` (l.221), `resetHeaderVisibility()` (l.191, the canonical factory-default applier).
 
 **Startup (context; not the apply hook):**
 - `com.echo.HappyCamper#setupApp(boolean)` (`HappyCamper.java:49`) → `createSingleWindow` (l.73) → `new MainWindow(rosterService)`. `EXIT_ON_CLOSE`, no custom `WindowListener`. (We persist eagerly on mutation, so no shutdown hook is required.)
-
-**Reference for hand-rolled JSON:**
-- `com.echo.web.RosterJson` (`src/main/java/com/echo/web/RosterJson.java`) — dependency-free JSON writer with escaping to mirror.
 
 ---
 

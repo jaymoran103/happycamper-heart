@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - **Java 22 / Maven.** Full suite: `mvn -B test`. Compile single tests with the surefire `-Dtest=` filter.
-- **No new dependencies.** JSON is hand-rolled (mirrors `com.echo.web.RosterJson`). Do not add Jackson/Gson/etc.
+- **No new dependencies.** JSON is hand-rolled and self-contained (`ViewPresetJson`). Do not add Jackson/Gson/etc.
 - **No commits or releases by the implementer.** Per repo workflow (CLAUDE.md) the maintainer reviews the working tree and commits. Every task ends with a **Checkpoint**: run the tests, then surface a *suggested* commit message — do **not** `git commit`, tag, or bump the pom `<version>`.
 - **Cross-platform paths:** use `java.nio.file.Path`/`Files` only; never pass `File.separator` to a regex (`String.split`). OS detection via `System.getProperty("os.name")` lowercased.
 - **Headless test naming:** name pure/service tests `…ServiceTest`/`…ResolverTest`/`…LocationTest` and selector tests `…SelectorTest` so they land in CI's headless subset (`*SelectorTest, *FilterTest, *FeatureTest, *ServiceTest, *RosterTest`).
@@ -448,7 +448,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Dependency-free JSON for the view-presets file (mirrors com.echo.web.RosterJson's hand-rolled style).
+ * Dependency-free, self-contained JSON for the view-presets file.
  * Schema is shallow on purpose: { version:int, default:string|null, presets:{ name:{ overrides:{ col:bool } } } }.
  */
 public final class ViewPresetJson {
@@ -1242,12 +1242,12 @@ private static void visibility_resetToDefault(EnhancedRoster roster, CheckBoxSel
 
 - [ ] **Step 4: Update the dialog's caller in `RosterTable`**
 
-In `RosterTable.showColumnVisibilityDialog()` (~line 248), pass the service:
+In `RosterTable.showColumnVisibilityDialog()` (~line 248) the dialog is constructed at ~line 258 as `new ColumnVisibilityDialog(window, roster, table)`. Add the service as the 4th argument, keeping the existing `window`/`roster`/`table` locals exactly as named:
 ```java
 ColumnVisibilityDialog dialog = new ColumnVisibilityDialog(
-    parentWindow, roster, this, com.echo.service.config.ViewPresetService.getInstance());
+    window, roster, table, com.echo.service.config.ViewPresetService.getInstance());
 ```
-(Keep the surrounding `resetCachedSettings()` call and parent-window lookup exactly as they are; only the constructor call gains the 4th argument.)
+(Keep the surrounding `resetCachedSettings()` call exactly as is; only the constructor call gains the 4th argument.)
 
 - [ ] **Step 5: Build to verify it compiles + run the headless suite**
 
@@ -1323,7 +1323,7 @@ Run the app (`mvn -B package -DskipTests` then launch the jar). Save a preset th
 ```java
 HoverButton presetsFolderButton = new HoverButton("Presets Folder…");
 presetsFolderButton.addActionListener(e -> openPresetsFolder());
-buttonPanel.add(presetsFolderButton); // match the local panel/variable name used by neighboring buttons
+buttonPanel.add(presetsFolderButton); // buttonPanel is the FlowLayout panel created at MainWindow.java:207
 ```
 (Use whatever local panel variable the surrounding buttons are added to, and the same `HoverButton` import already present in MainWindow.)
 
