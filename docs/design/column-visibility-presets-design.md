@@ -120,6 +120,7 @@ Resolves and lazily creates the app-data directory, returns the `view-presets.js
 - Loads the store on first use (cache in memory).
 - API roughly: `listPresets()`, `getDefaultName()`, `setDefault(name|null)`, `savePreset(name, overrides)`, `deletePreset(name)`, `resolveFor(roster, presetName) -> Map<String,Boolean>`.
 - **Library mutations persist immediately** (save/delete/set-default write the file now — see §6 atomic write). Applying a preset to the table does **not** persist anything (it's a view action, committed via the dialog's existing Apply).
+- **Production wiring is a singleton (interim, not the clean solution).** The service's *core* is fully unit-tested via a constructor-injected `Path`; production access goes through a `getInstance()` singleton purely because heart's dialog/selector code is already static-heavy (static `createSelectors`, static `cachedSettings`). This is a pragmatic match to the existing code, **not** the target design — v3 should wire the service via proper dependency injection (constructor-passed), not global state. Flagged here and in the patch record so the v3 port doesn't inherit the shortcut by default.
 
 ### 5.4 QA strategy for the cross-platform surface (the riskiest part)
 Path resolution is the highest-risk failure surface here: per-OS, env-dependent, and run on machines we can't all hand-test. Maximize pre-ship confidence *and* guard future edits from becoming a liability:
