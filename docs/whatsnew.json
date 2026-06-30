@@ -1,12 +1,8 @@
 {
-  "label": "v2.3",
+  "label": "v2.4",
   "items": [
-    "Versatile search bar",
-    "Report for activity stats",
-    "Sort by activity demand",
-    "Filter by activity assignments",
-    "Filter for swim lesson mismatches",
-    "Column for unfulfilled preferences",
-    "Display status in footer, with reset button"
+    "Save column layouts as named presets",
+    "Set a default view that loads automatically",
+    "Presets last between sessions and updates"
   ]
 }
