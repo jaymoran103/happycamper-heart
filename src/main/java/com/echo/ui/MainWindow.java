@@ -51,6 +51,7 @@ import com.echo.service.ActivityReportData;
 import com.echo.service.DemandSort;
 import com.echo.service.RosterService;
 import com.echo.service.ViewStateSummary;
+import com.echo.service.config.ViewPresetService;
 import com.echo.ui.component.RosterTable;
 import com.echo.ui.component.ViewStatusBar;
 import com.echo.ui.dialog.ColumnVisibilityDialog;
@@ -72,6 +73,7 @@ public class MainWindow extends JFrame {
     private static final String ICON_PATH = "app.png";
 
     private final RosterService rosterService;
+    private final ViewPresetService viewPresetService = ViewPresetService.getInstance();
 
     private EnhancedRoster currentRoster;
     private FilterManager filterManager;
@@ -544,6 +546,15 @@ public class MainWindow extends JFrame {
 
         // Then reset to default values
         roster.resetHeaderVisibility();
+
+        // Apply the opt-in default preset over the factory baseline (forgiving: only affects existing columns).
+        String defaultPreset = viewPresetService.getDefaultName();
+        if (defaultPreset != null && viewPresetService.listPresets().contains(defaultPreset)) {
+            var resolved = viewPresetService.resolveFor(roster.getAllHeaders(), defaultPreset);
+            for (var entry : resolved.entrySet()) {
+                roster.setHeaderVisibility(entry.getKey(), entry.getValue());
+            }
+        }
 
         // Reset any stale search term before wiring the new roster's scope options
         searchField.setText("");

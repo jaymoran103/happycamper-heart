@@ -8,10 +8,13 @@ import javax.swing.JTable;
 
 import com.echo.domain.EnhancedRoster;
 import com.echo.service.ColumnSettings;
+import com.echo.service.config.ViewPresetService;
+import com.echo.service.config.VisibilityResolver;
 import com.echo.ui.selector.ActionButtonSelector;
 import com.echo.ui.selector.CheckBoxSelector;
 import com.echo.ui.selector.InputSelector;
 import com.echo.ui.selector.NumberInputSelector;
+import com.echo.ui.selector.PresetSelector;
 import com.echo.ui.selector.RadioButtonSelector;
 
 /**
@@ -24,6 +27,7 @@ public class ColumnVisibilityDialog extends InputsDialog {
     private final EnhancedRoster roster;
     private final JTable table;
 
+    private PresetSelector presetSelector;
     private CheckBoxSelector columnVisibilitySelector;
     private RadioButtonSelector<ColumnSizingOption> columnSizingSelector;
     private NumberInputSelector customWidthSelector;
@@ -39,16 +43,24 @@ public class ColumnVisibilityDialog extends InputsDialog {
      * @param roster The roster containing the column data
      * @param table The table to apply column settings to
      */
-    public ColumnVisibilityDialog(Window parent, EnhancedRoster roster, JTable table) {
-        super(parent, true, "Column Settings", createSelectors(roster, table), COLUMN_DIALOG_WIDTH, "Apply");
+    public ColumnVisibilityDialog(Window parent, EnhancedRoster roster, JTable table, ViewPresetService presetService) {
+        super(parent, true, "Column Settings", createSelectors(roster, table, presetService), COLUMN_DIALOG_WIDTH, "Apply");
         this.roster = roster;
         this.table = table;
 
         // Store references to selectors
-        actionButtonSelector = (ActionButtonSelector) selectors[0];
+        actionButtonSelector  = (ActionButtonSelector) selectors[0];
         columnVisibilitySelector = (CheckBoxSelector) selectors[1];
-        columnSizingSelector = (RadioButtonSelector<ColumnSizingOption>) selectors[2];
-        customWidthSelector = (NumberInputSelector) selectors[3];
+        presetSelector        = (PresetSelector) selectors[2];
+
+        columnSizingSelector  = (RadioButtonSelector<ColumnSizingOption>) selectors[3];
+        customWidthSelector   = (NumberInputSelector) selectors[4];
+
+        // Chain the visibility callback so dirty state recomputes alongside the Apply-button validity.
+        columnVisibilitySelector.setUpdateCallback(() -> {
+            updateContinueButton();
+            presetSelector.onWorkingStateChanged();
+        });
 
         // Set up conditional enabling for custom width input
         columnSizingSelector.setUpdateCallback(() -> {
@@ -69,7 +81,7 @@ public class ColumnVisibilityDialog extends InputsDialog {
      * @param table The table to apply column settings to
      * @return Array of selectors
      */
-    private static InputSelector<?>[] createSelectors(EnhancedRoster roster, JTable table) {
+    private static InputSelector<?>[] createSelectors(EnhancedRoster roster, JTable table, ViewPresetService presetService) {
         // Update cached settings from roster if column visibility map is empty
         if (cachedSettings.getColumnVisibility().isEmpty()) {
             cachedSettings.updateFromRoster(roster);
@@ -97,14 +109,17 @@ public class ColumnVisibilityDialog extends InputsDialog {
 
         CheckBoxSelector visibilitySelector = new CheckBoxSelector("Column Visibility", columnMap, false);
 
+        PresetSelector presetSelector = new PresetSelector(
+            "Column Presets", presetService, visibilitySelector, roster.getAllHeaders());
+
         // Create action buttons for column visibility
         ActionButtonSelector actionSelector = new ActionButtonSelector(
             "Visibility Controls",
-            new String[] {"Show All", "Hide All", "Reset to Default"},
+            new String[] {"Show All", "Hide All", "Reset to Standard"},
             new Runnable[] {
                 () -> visibility_showAll(roster, visibilitySelector),
                 () -> visibility_hideAll(roster, visibilitySelector),
-                () -> visibility_resetToDefault(roster, visibilitySelector)
+                () -> visibility_resetToStandard(roster, visibilitySelector)
             }
         );
 
@@ -126,10 +141,12 @@ public class ColumnVisibilityDialog extends InputsDialog {
 
 
         return new InputSelector<?>[] {
-            actionSelector,
-            visibilitySelector,
-            sizingSelector,
-            widthSelector
+            actionSelector,      // [0]
+            visibilitySelector,  // [1]
+            presetSelector,      // [2]
+
+            sizingSelector,      // [3]
+            widthSelector        // [4]
         };
     }
 
@@ -151,20 +168,8 @@ public class ColumnVisibilityDialog extends InputsDialog {
     }
 
 
-    private static void visibility_resetToDefault(EnhancedRoster roster, CheckBoxSelector visibilitySelector){
-        Map<String, Boolean> defaultMap = new LinkedHashMap<>();
-        for (String header : roster.getAllHeaders()) {
-            // Get default visibility from RosterHeader enum if possible
-            com.echo.domain.RosterHeader rosterHeader = com.echo.domain.RosterHeader.determineHeaderType(header);
-            boolean defaultVisibility = true; // Default to visible for custom headers
-
-            if (rosterHeader != null) {
-                defaultVisibility = rosterHeader.defaultVisibility;
-            }
-
-            defaultMap.put(header, defaultVisibility);
-        }
-        visibilitySelector.setValue(defaultMap);
+    private static void visibility_resetToStandard(EnhancedRoster roster, CheckBoxSelector visibilitySelector){
+        visibilitySelector.setValue(VisibilityResolver.resolve(roster.getAllHeaders(), java.util.Map.of()));
     }
 
     /**

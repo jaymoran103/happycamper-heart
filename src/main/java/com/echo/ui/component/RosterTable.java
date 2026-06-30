@@ -255,7 +255,7 @@ public class RosterTable extends JPanel {
         ColumnVisibilityDialog.resetCachedSettings();
 
         Window window = SwingUtilities.getWindowAncestor(this);
-        ColumnVisibilityDialog dialog = new ColumnVisibilityDialog(window, roster, table);
+        ColumnVisibilityDialog dialog = new ColumnVisibilityDialog(window, roster, table, com.echo.service.config.ViewPresetService.getInstance());
         dialog.showDialog();
 
         if (dialog.isInputConfirmed()) {
