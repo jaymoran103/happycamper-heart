@@ -81,7 +81,7 @@
 
   <img class="logo" src="icon.png" alt="HappyCamper logo">
   <h1>HappyCamper</h1>
-  <p class="version"><span id="version">Version 2.3.0</span> &ndash; June 12, 2026</p> <!-- version updated automatically from the latest release -->
+  <p class="version"><span id="version">Version 2.3.0</span><span id="reldate"></span></p> <!-- version + date update automatically from the latest release -->
   <details class="whatsnew" id="whatsnew">
     <summary>See what's new in <span id="whatsnew-label"></span></summary>
     <div class="panel"><ul id="whatsnew-list"></ul></div>
@@ -156,6 +156,12 @@
       var v = (d.tag_name || "").replace(/^v/, "");
       if (!v) return;
       document.getElementById("version").textContent = "Version " + v;
+      if (d.published_at) {
+        var when = new Date(d.published_at).toLocaleDateString("en-US", {
+          year: "numeric", month: "long", day: "numeric", timeZone: "UTC"
+        });
+        document.getElementById("reldate").textContent = " – " + when;
+      }
       document.querySelectorAll(".dl:not(.demo) a.button").forEach(function (a) {
         a.textContent = "Download v" + v;
       });
