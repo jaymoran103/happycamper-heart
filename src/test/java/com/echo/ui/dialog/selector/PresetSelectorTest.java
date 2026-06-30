@@ -53,6 +53,24 @@ class PresetSelectorTest {
         return new PresetSelector("Presets", svc, cb, HEADERS);
     }
 
+    /** Save button has an ellipsis in its label; match by prefix. */
+    private static AbstractButton saveButton(Container c) {
+        return buttons(c).stream()
+            .filter(b -> b.getText() != null && b.getText().startsWith("+ Save"))
+            .findFirst().orElse(null);
+    }
+
+    /** PresetSelector with prompt seams stubbed so headless tests never open JOptionPane. */
+    private static class StubSelector extends PresetSelector {
+        String nameToReturn;
+        boolean confirmResult = true;
+        String lastWarn;
+        StubSelector(ViewPresetService svc, CheckBoxSelector cb) { super("Presets", svc, cb, HEADERS); }
+        @Override protected String promptForName() { return nameToReturn; }
+        @Override protected boolean confirm(String title, String message) { return confirmResult; }
+        @Override protected void warn(String title, String message) { lastWarn = message; }
+    }
+
     @Test void applyingSavedPresetUpdatesVisibility(@TempDir Path dir) {
         ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
         svc.savePreset("Reveal", ov("First Name", true));
@@ -152,15 +170,55 @@ class PresetSelectorTest {
         svc.savePreset("A", ov("First Name", true));
         svc.savePreset("B", new LinkedHashMap<>());
         CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
-        PresetSelector ps = build(svc, cb);
+        StubSelector ps = new StubSelector(svc, cb);
+        ps.confirmResult = true;                       // user confirms the delete
         JPanel panel = ps.createPanel();
         ps.setValue("A");
         assertEquals("A", ps.getValue());
-        AbstractButton delete = button(panel, "Delete");
-        assertNotNull(delete);
-        delete.doClick();
+        button(panel, "Delete").doClick();
         assertEquals(List.of("B"), svc.listPresets());
         assertNull(ps.getValue());
+    }
+
+    @Test void deleteConfirmDeclinedKeepsPreset(@TempDir Path dir) {
+        ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
+        svc.savePreset("A", new LinkedHashMap<>());
+        CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
+        StubSelector ps = new StubSelector(svc, cb);
+        ps.confirmResult = false;                      // user cancels the delete
+        JPanel panel = ps.createPanel();
+        ps.setValue("A");
+        button(panel, "Delete").doClick();
+        assertEquals(List.of("A"), svc.listPresets()); // still there
+        assertEquals("A", ps.getValue());
+    }
+
+    @Test void saveRejectsDuplicateNameWithoutOverwriting(@TempDir Path dir) {
+        ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
+        svc.savePreset("A", ov("First Name", true));   // existing A reveals First Name
+        CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false);
+        StubSelector ps = new StubSelector(svc, cb);
+        ps.nameToReturn = "A";                         // try to save-as-new under the existing name
+        JPanel panel = ps.createPanel();
+        saveButton(panel).doClick();
+        assertEquals(List.of("A"), svc.listPresets());                       // no new entry
+        assertEquals(Boolean.TRUE, svc.getOverrides("A").get("First Name")); // A NOT overwritten
+        assertNotNull(ps.lastWarn);                                          // user was warned
+    }
+
+    @Test void saveIdenticalColumnsRespectsDeclineThenAccepts(@TempDir Path dir) {
+        ViewPresetService svc = new ViewPresetService(dir.resolve("v.json"));
+        svc.savePreset("A", new LinkedHashMap<>());    // A == factory defaults
+        CheckBoxSelector cb = new CheckBoxSelector("Column Visibility", visibility(false), false); // == factory
+        StubSelector ps = new StubSelector(svc, cb);
+        JPanel panel = ps.createPanel();
+        ps.nameToReturn = "B";
+        ps.confirmResult = false;                      // decline the identical-columns warning
+        saveButton(panel).doClick();
+        assertEquals(List.of("A"), svc.listPresets()); // B not saved
+        ps.confirmResult = true;                       // accept the duplicate
+        saveButton(panel).doClick();
+        assertTrue(svc.listPresets().contains("B"));   // now saved despite identical columns
     }
 
     @Test void setAsDefaultButtonUpdatesService(@TempDir Path dir) {

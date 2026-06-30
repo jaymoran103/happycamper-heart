@@ -105,13 +105,25 @@ public class PresetSelector extends InputSelector<String> {
         setDefaultButton = new HoverButton("Set as default");
 
         saveAsNewButton.addActionListener(e -> {
-            String name = JOptionPane.showInputDialog(listPanel, "Name this preset:");
-            if (name != null && !name.isBlank()) {
-                service.savePreset(name.trim(),
-                    VisibilityResolver.computeOverrides(headers, visibilitySelector.getValue()));
-                selectedName = name.trim();
-                rebuildList();
+            String input = promptForName();
+            if (input == null) return;
+            String name = input.trim();
+            if (name.isBlank()) return;
+            if (service.listPresets().contains(name)) {            // #1 names must stay unique
+                warn("Duplicate name", "A preset named \"" + name + "\" already exists.\n"
+                    + "Choose a different name, or select that preset and use Update.");
+                return;
             }
+            LinkedHashMap<String, Boolean> overrides =
+                VisibilityResolver.computeOverrides(headers, visibilitySelector.getValue());
+            String twin = findEquivalentPreset(overrides);          // #2 flag identical-column duplicates
+            if (twin != null && !confirm("Duplicate columns",
+                    "Preset \"" + twin + "\" already has these exact columns.\nSave a duplicate anyway?")) {
+                return;
+            }
+            service.savePreset(name, overrides);
+            selectedName = name;
+            rebuildList();
         });
         updateButton.addActionListener(e -> {
             if (selectedName != null && isDirty()) {
@@ -127,11 +139,11 @@ public class PresetSelector extends InputSelector<String> {
             }
         });
         deleteButton.addActionListener(e -> {
-            if (selectedName != null) {
-                service.deletePreset(selectedName);
-                selectedName = null;
-                rebuildList();
-            }
+            if (selectedName == null) return;
+            if (!confirm("Delete preset", "Delete preset \"" + selectedName + "\"?")) return;  // #3 confirm
+            service.deletePreset(selectedName);
+            selectedName = null;
+            rebuildList();
         });
         setDefaultButton.addActionListener(e -> {
             if (selectedName != null) { service.setDefault(selectedName); refresh(); }
@@ -156,6 +168,32 @@ public class PresetSelector extends InputSelector<String> {
         for (HoverButton b : buttons) p.add(b);
         p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         return p;
+    }
+
+    // --- Prompt seams (overridable for headless tests; production uses JOptionPane) ---
+
+    /** Ask for a new preset name; null = cancelled. */
+    protected String promptForName() {
+        return JOptionPane.showInputDialog(listPanel, "Name this preset:");
+    }
+
+    /** Yes/No confirmation; true = confirmed. */
+    protected boolean confirm(String title, String message) {
+        return JOptionPane.showConfirmDialog(listPanel, message, title,
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
+    }
+
+    /** Non-blocking notice that an action could not proceed. */
+    protected void warn(String title, String message) {
+        JOptionPane.showMessageDialog(listPanel, message, title, JOptionPane.WARNING_MESSAGE);
+    }
+
+    /** Existing preset whose stored overrides equal the given set, or null (pure, roster-independent). */
+    private String findEquivalentPreset(Map<String, Boolean> overrides) {
+        for (String name : service.listPresets()) {
+            if (service.getOverrides(name).equals(overrides)) return name;
+        }
+        return null;
     }
 
     private void select(String name) {
