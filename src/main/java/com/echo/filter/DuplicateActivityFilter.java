@@ -6,6 +6,7 @@ import java.util.function.BiConsumer;
 
 import com.echo.domain.Camper;
 import com.echo.domain.DataConstants;
+import com.echo.domain.EnhancedRoster;
 import com.echo.domain.RosterHeader;
 import com.echo.filter.option.DuplicateActivityFilterOption;
 import com.echo.ui.filter.CollapsibleFilterPanel;
@@ -39,6 +40,12 @@ public class DuplicateActivityFilter implements RosterFilter {
     @Override
     public String getFilterName() {
         return FILTER_NAME;
+    }
+
+    @Override
+    public AssertionResult checkAssertion(EnhancedRoster roster) {
+        return AssertionResult.forFlagColumn(roster, RosterHeader.DUPLICATE_ACTIVITY,
+            "camper", "No camper is assigned the same activity twice");
     }
 
     @Override

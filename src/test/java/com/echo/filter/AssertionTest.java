@@ -148,4 +148,86 @@ public class AssertionTest {
 
         assertFalse(bare.checkAssertion(new EnhancedRoster()).applicable());
     }
+
+    @Test
+    @DisplayName("PreferenceFilter asserts no unrequested activities")
+    public void testPreferenceAssertion() {
+        PreferenceFilter filter = new PreferenceFilter();
+
+        EnhancedRoster clean = rosterWithFlagValues(
+            RosterHeader.UNREQUESTED_ACTIVITIES, DataConstants.DISPLAY_EMPTY, "");
+        assertTrue(filter.checkAssertion(clean).satisfied());
+
+        EnhancedRoster dirty = rosterWithFlagValues(
+            RosterHeader.UNREQUESTED_ACTIVITIES, DataConstants.DISPLAY_EMPTY, "Archery");
+        AssertionResult result = filter.checkAssertion(dirty);
+        assertFalse(result.satisfied());
+        assertEquals(1, result.failureCount());
+        assertEquals("camper", result.unit());
+        assertFalse(result.claim().isEmpty());
+    }
+
+    @Test
+    @DisplayName("SwimLevelFilter asserts no aquatic conflicts")
+    public void testSwimLevelAssertion() {
+        SwimLevelFilter filter = new SwimLevelFilter();
+
+        EnhancedRoster clean = rosterWithFlagValues(
+            RosterHeader.SWIMCONFLICTS, DataConstants.DISPLAY_EMPTY);
+        assertTrue(filter.checkAssertion(clean).satisfied());
+
+        EnhancedRoster dirty = rosterWithFlagValues(
+            RosterHeader.SWIMCONFLICTS, "Canoeing", "Swimming");
+        assertEquals(2, filter.checkAssertion(dirty).failureCount());
+    }
+
+    @Test
+    @DisplayName("SwimLessonFilter asserts swim lessons match swim level")
+    public void testSwimLessonAssertion() {
+        SwimLessonFilter filter = new SwimLessonFilter();
+
+        EnhancedRoster clean = rosterWithFlagValues(
+            RosterHeader.SWIMLESSON, DataConstants.DISPLAY_EMPTY);
+        assertTrue(filter.checkAssertion(clean).satisfied());
+
+        EnhancedRoster dirty = rosterWithFlagValues(
+            RosterHeader.SWIMLESSON, "Missing lessons");
+        assertEquals(1, filter.checkAssertion(dirty).failureCount());
+    }
+
+    @Test
+    @DisplayName("DuplicateActivityFilter asserts no duplicate activities")
+    public void testDuplicateActivityAssertion() {
+        DuplicateActivityFilter filter = new DuplicateActivityFilter();
+
+        EnhancedRoster clean = rosterWithFlagValues(
+            RosterHeader.DUPLICATE_ACTIVITY, DataConstants.DISPLAY_EMPTY);
+        assertTrue(filter.checkAssertion(clean).satisfied());
+
+        EnhancedRoster dirty = rosterWithFlagValues(
+            RosterHeader.DUPLICATE_ACTIVITY, "Archery");
+        assertEquals(1, filter.checkAssertion(dirty).failureCount());
+    }
+
+    @Test
+    @DisplayName("A column-based assertion returns none() when its column is absent")
+    public void testColumnBasedAssertionWithoutColumn() {
+        EnhancedRoster roster = new EnhancedRoster();
+        roster.addHeader(RosterHeader.FIRST_NAME.standardName);
+
+        assertFalse(new PreferenceFilter().checkAssertion(roster).applicable());
+        assertFalse(new SwimLevelFilter().checkAssertion(roster).applicable());
+        assertFalse(new SwimLessonFilter().checkAssertion(roster).applicable());
+        assertFalse(new DuplicateActivityFilter().checkAssertion(roster).applicable());
+    }
+
+    @Test
+    @DisplayName("Filters with no pass/fail meaning return none()")
+    public void testFiltersWithoutAssertions() {
+        EnhancedRoster roster = rosterWithFlagValues(RosterHeader.ROUND_COUNT, "3", "2");
+
+        assertFalse(new AssignmentFilter().checkAssertion(roster).applicable());
+        assertFalse(new TextSearchFilter().checkAssertion(roster).applicable());
+        assertFalse(new ActivityFilter().checkAssertion(roster).applicable());
+    }
 }
