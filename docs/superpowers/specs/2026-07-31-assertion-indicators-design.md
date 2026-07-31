@@ -49,7 +49,7 @@ one piece of the implementation:
 
 | Category | Filters | Implementation |
 |---|---|---|
-| 1. Column-based assertion | Preference, Aquatic Conflicts, Swim Lessons, Duplicate Activities | shared `Assertions.forFlagColumn` helper |
+| 1. Column-based assertion | Preference, Aquatic Conflicts, Swim Lessons, Duplicate Activities | shared `AssertionResult.forFlagColumn` helper |
 | 2. Custom check | Programs | hand-written `checkAssertion` override |
 | 3. No assertion | Assignment, Search, Activity Selector | inherits the defaulted no-op; not modified |
 
@@ -82,17 +82,20 @@ public record AssertionResult(boolean applicable, int failureCount, String unit,
   count campers.
 - `claim` is the plain-English assertion, e.g. `"Rounds assigned are consistent for each program"`.
 
-### 2. `Assertions` — new helper, `com.echo.filter`
+### 2. `AssertionResult.forFlagColumn` — new static factory, `com.echo.filter`
 
 ```java
 static AssertionResult forFlagColumn(EnhancedRoster roster, RosterHeader header,
                                      String unit, String claim);
 ```
 
-Counts campers whose `header` value is non-empty, treating `null`,
-`DataConstants.DISPLAY_EMPTY`, and `DataConstants.isEmpty(...)` as empty — matching the existing
-`apply()` convention in the flag-column filters. Four of the five assertions are exactly this shape
-(category 1 above).
+This is a static factory on `AssertionResult` itself, not a separate helper class. A standalone
+`com.echo.filter.Assertions` class was rejected: that name would shadow JUnit's
+`org.junit.jupiter.api.Assertions` in same-package tests, forcing an import alias or fully-qualified
+references everywhere the test package asserts. Counts campers whose `header` value is non-empty,
+treating `null`, `DataConstants.DISPLAY_EMPTY`, and `DataConstants.isEmpty(...)` as empty — matching
+the existing `apply()` convention in the flag-column filters. Four of the five assertions are exactly
+this shape (category 1 above).
 
 ### 3. `RosterFilter` gains one defaulted method
 
@@ -115,7 +118,7 @@ modified — category 3.
 | `DuplicateActivityFilter` | No camper is assigned the same activity twice | `DUPLICATE_ACTIVITY` empty | camper |
 | `SortedProgramFilter` | Rounds assigned are consistent for each program | `ProgramFeature.getProgramsByRoundCount(roster).get(-1)` is empty | program |
 
-The first four delegate to `Assertions.forFlagColumn` (category 1).
+The first four delegate to `AssertionResult.forFlagColumn` (category 1).
 
 **`SortedProgramFilter`** (category 2): `ProgramFeature.getProgramsByRoundCount` already buckets
 programs by round count with `-1` meaning Mixed. The assertion is that the Mixed bucket is empty;
