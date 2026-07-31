@@ -194,8 +194,8 @@ public class CollapsibleFilterPanel extends JPanel {
     }
 
     /**
-     * Shows this filter's assertion status in the header: a green dot when satisfied, a red dot
-     * with the failure count when not, nothing at all when the filter is not an assertion.
+     * Shows this filter's assertion status in the header: a green checkmark when satisfied, a red
+     * dot with the failure count when not, nothing at all when the filter is not an assertion.
      *
      * @param assertion the assertion outcome; null or a non-applicable result hides the indicator
      */
@@ -208,7 +208,7 @@ public class CollapsibleFilterPanel extends JPanel {
         }
 
         boolean satisfied = assertion.satisfied();
-        assertionLabel.setText(satisfied ? "●" : "● " + assertion.failureCount());
+        assertionLabel.setText(satisfied ? "✓" : "● " + assertion.failureCount());
         assertionLabel.setForeground(satisfied
             ? FilterSidebar.ASSERTION_PASS_COLOR
             : FilterSidebar.ASSERTION_FAIL_COLOR);

@@ -111,13 +111,13 @@ public class CollapsibleFilterPanelTest {
     }
 
     @Test
-    @DisplayName("A satisfied assertion shows a green dot with no count")
+    @DisplayName("A satisfied assertion shows a green checkmark with no count")
     public void testSatisfiedAssertionIndicator() {
         panel.setAssertion(AssertionResult.of(0, "camper", "Everything holds"));
 
         JLabel indicator = findAssertionLabel(panel);
         assertTrue(indicator.isVisible());
-        assertEquals("●", indicator.getText());
+        assertEquals("✓", indicator.getText());
         assertEquals(FilterSidebar.ASSERTION_PASS_COLOR, indicator.getForeground());
     }
 
@@ -139,6 +139,32 @@ public class CollapsibleFilterPanelTest {
         panel.setAssertion(AssertionResult.none());
 
         assertFalse(findAssertionLabel(panel).isVisible());
+    }
+
+    @Test
+    @DisplayName("An applicable assertion sets the header tooltip to the claim and status text")
+    public void testApplicableAssertionSetsTooltip() {
+        panel.setAssertion(AssertionResult.of(3, "camper", "Everything holds"));
+
+        // The assertion label is added directly to the header panel (see
+        // CollapsibleFilterPanel#createHeaderPanel), so its parent *is* the header panel that
+        // carries the tooltip - no separate tree-walk helper needed.
+        JPanel headerPanel = (JPanel) findAssertionLabel(panel).getParent();
+        assertNotNull(headerPanel);
+        String tooltip = headerPanel.getToolTipText();
+        assertTrue(tooltip.contains("Everything holds"));
+        assertTrue(tooltip.contains("3 campers fail"));
+    }
+
+    @Test
+    @DisplayName("none() restores the original header tooltip, not a stale claim string")
+    public void testNoneRestoresOriginalTooltip() {
+        panel.setAssertion(AssertionResult.of(3, "camper", "Everything holds"));
+        panel.setAssertion(AssertionResult.none());
+
+        JPanel headerPanel = (JPanel) findAssertionLabel(panel).getParent();
+        assertNotNull(headerPanel);
+        assertEquals(TITLE + " - Click to expand/collapse", headerPanel.getToolTipText());
     }
 
     /**
