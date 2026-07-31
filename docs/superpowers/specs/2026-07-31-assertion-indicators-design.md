@@ -1,7 +1,7 @@
 # Filters as Assertion Indicators — Prototype Design
 
 **Date:** 2026-07-31
-**Status:** Approved, pending implementation
+**Status:** Implemented, on branch `assertion-indicators` (8 local commits, unpushed)
 **Scope:** Demo prototype. Communicates the objective; not the eventual refactor.
 
 ## Objective
@@ -73,6 +73,7 @@ public record AssertionResult(boolean applicable, int failureCount, String unit,
     public static AssertionResult none();
     public static AssertionResult of(int failureCount, String unit, String claim);
     public boolean satisfied();   // applicable && failureCount == 0
+    public String statusText();   // "satisfied" / "1 camper fails" / "3 campers fail" / "" when not applicable
 }
 ```
 
@@ -173,15 +174,22 @@ panel creation in a try/catch that logs and continues.
 ## Testing
 
 The assertion logic is pure and headless. A new `AssertionTest` in `com.echo.filter` asserts
-green/red outcomes against existing fixtures in `src/test/resources/testRosters/`, covering:
+green/red outcomes over synthetic in-memory rosters, built with two local static helpers —
+`rosterWithFlagValues(RosterHeader, String...)` and `rosterWithPrograms(String...)` — rather than
+fixtures from `src/test/resources/testRosters/`, covering:
 
 - each flag-column assertion, satisfied and violated
 - the Programs Mixed-bucket assertion
 - `AssignmentFilter`, `TextSearchFilter`, and `ActivityFilter` all return `none()`
 - a filter whose backing column is absent returns `none()` and does not throw
+- the checkbox-independence invariant: flipping a filter's own visibility state does not change its
+  assertion's failure count
 
-The rendering change is verified by launching the app against a demo roster and confirming the
-checkmarks and dots appear, align, and read correctly at a glance.
+The rendering change is covered by additions to `CollapsibleFilterPanelTest` and `FilterSidebarTest`,
+plus a new shared `FilterTestSupport` helper (`findAssertionLabel`) they both use to locate the
+indicator label in the component tree. The maintainer separately verified it by launching the app
+against a demo roster and confirming the checkmarks and dots appear, align, and read correctly at a
+glance.
 
 ## Explicitly out of scope
 

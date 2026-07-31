@@ -182,6 +182,29 @@ public class AssertionTest {
     }
 
     @Test
+    @DisplayName("SwimLevelFilter's assertion is computed over the whole roster, independent of "
+        + "its own checkbox state")
+    public void testSwimLevelAssertionIsIndependentOfFilterVisibility() {
+        SwimLevelFilter filter = new SwimLevelFilter();
+
+        EnhancedRoster roster = rosterWithFlagValues(
+            RosterHeader.SWIMCONFLICTS, DataConstants.DISPLAY_EMPTY, "Canoeing", "Swimming");
+
+        AssertionResult before = filter.checkAssertion(roster);
+        assertEquals(2, before.failureCount());
+
+        // Hide the very campers that fail the assertion (and everyone else, for good measure).
+        // If this changed the result, a filter could turn its own indicator green just by hiding
+        // its failures -- the one thing the whole-roster evaluation is meant to prevent.
+        filter.setShowIncompatibleCampers(false);
+        filter.setShowCompatibleCampers(false);
+
+        AssertionResult after = filter.checkAssertion(roster);
+        assertEquals(2, after.failureCount());
+        assertEquals(before, after);
+    }
+
+    @Test
     @DisplayName("SwimLessonFilter asserts swim lessons match swim level")
     public void testSwimLessonAssertion() {
         SwimLessonFilter filter = new SwimLessonFilter();
@@ -279,6 +302,31 @@ public class AssertionTest {
         assertEquals(2, result.failureCount());
         assertEquals("program", result.unit());
         assertEquals("2 programs fail", result.statusText());
+    }
+
+    @Test
+    @DisplayName("Programs assertion is computed over the whole roster, independent of which "
+        + "programs are checked visible")
+    public void testProgramsAssertionIsIndependentOfProgramVisibility() {
+        EnhancedRoster roster = rosterWithPrograms(
+            "Program A", "3", "Program A", "3",
+            "Program D", "2", "Program D", "3",
+            "Program E", "1", "Program E", "2");
+
+        SortedProgramFilter filter = new SortedProgramFilter();
+
+        AssertionResult before = filter.checkAssertion(roster);
+        assertEquals(2, before.failureCount());
+
+        // Hide the very programs that fail the assertion (and the consistent one, for good
+        // measure). The assertion must still report the same two failing programs.
+        filter.setProgramVisible("Program D", false);
+        filter.setProgramVisible("Program E", false);
+        filter.setProgramVisible("Program A", false);
+
+        AssertionResult after = filter.checkAssertion(roster);
+        assertEquals(2, after.failureCount());
+        assertEquals(before, after);
     }
 
     @Test
