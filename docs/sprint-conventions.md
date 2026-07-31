@@ -64,3 +64,23 @@ entry names what bent, where, and why it's safe.
   filter is always-on.
 - **Why safe:** it has no feature dependency — it matches plain camper fields and an empty term passes
   everyone, so an always-present instance is inert until used.
+
+## E1 — filters carry a non-filtering responsibility (assertion status)
+- **Where:** `RosterFilter.checkAssertion` (defaulted) + `AssertionResult` + overrides on
+  `PreferenceFilter`, `SwimLevelFilter`, `SwimLessonFilter`, `DuplicateActivityFilter`,
+  `SortedProgramFilter`; rendered by `CollapsibleFilterPanel.setAssertion` and wired in
+  `FilterSidebar.addFilterPanel`.
+- **Bend:** relaxes "a filter is purely a visibility predicate". A filter now also reports whether
+  the whole roster satisfies a related assertion, which its own checkbox state does not affect.
+- **Three categories:** column-based (one shared `AssertionResult.forFlagColumn` helper — preference,
+  aquatic conflicts, swim lessons, duplicate activities), custom (Programs, keyed on the existing
+  `getProgramsByRoundCount` "Mixed" bucket), and none (Assignment, Search, Activity Selector, which
+  inherit the defaulted no-op and are unmodified).
+- **Why safe:** read-only over the roster and entirely additive — `apply()` is untouched, so what
+  each filter filters is unchanged. Assertion scope is always the whole roster, never the filtered
+  rows, so a filter cannot turn its own indicator green by hiding its failures. Filters without a
+  pass/fail meaning render exactly as before.
+- **Note:** `AssignmentFilter` deliberately has no assertion — a round count on its own is neither
+  valid nor invalid, and round counts legitimately vary by program. Any round-count inconsistency is
+  reported by the Programs assertion. Configurable expected round counts would give Assignment a real
+  per-camper assertion; that is future work.

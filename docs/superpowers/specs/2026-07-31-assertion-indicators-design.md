@@ -33,7 +33,7 @@ sidebar.
 |---|---|---|
 | Filters with no pass/fail meaning (Assignment, Activity Selector) | No indicator at all — headers unchanged | Honest: reads as "not an assertion". Keeps the green/red signal meaningful, and visibly shows the sidebar is mixed today. Search (`TextSearchFilter`) is not part of this decision: `createFilterPanel()` returns `null`, so it has no sidebar header to put an indicator on in the first place. |
 | Evaluation scope | Always the whole roster, regardless of checkbox state | Stable and honest. Under a visible-rows scope, unchecking "show incompatible" would turn Aquatic Conflicts green while conflicts still exist — confusing on stage. |
-| Visual treatment | Right-aligned colored dot plus failure count | Leaves the existing left side (toggle + bold title) untouched, scans as a column of dots down the sidebar, and the count conveys severity. |
+| Visual treatment | Right-aligned green checkmark when satisfied, red dot plus failure count when not | Leaves the existing left side (toggle + bold title) untouched, scans as a column of checkmarks/dots down the sidebar, and the count conveys severity. |
 | Assignment Filter | **No assertion.** | A round count on its own is neither valid nor invalid — round counts legitimately vary by program, and there is no configured expectation to check a camper against. Any round-count *inconsistency* is already reported by the Programs assertion. Configurable expected round counts are future work; when they exist, Assignment gains a real per-camper assertion. |
 
 ## Architecture
@@ -177,8 +177,8 @@ green/red outcomes against existing fixtures in `src/test/resources/testRosters/
 - `AssignmentFilter`, `TextSearchFilter`, and `ActivityFilter` all return `none()`
 - a filter whose backing column is absent returns `none()` and does not throw
 
-The rendering change is verified by launching the app against a demo roster and confirming the dots
-appear, align, and read correctly at a glance.
+The rendering change is verified by launching the app against a demo roster and confirming the
+checkmarks and dots appear, align, and read correctly at a glance.
 
 ## Explicitly out of scope
 

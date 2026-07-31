@@ -9,8 +9,9 @@ import com.echo.domain.RosterHeader;
  * The outcome of evaluating one filter's assertion over an entire roster.
  *
  * Part of the assertion-indicator prototype: each sidebar filter that carries a pass/fail meaning
- * reports one of these, and its header renders a green or red dot accordingly. Filters with no
- * pass/fail meaning return {@link #none()} and render unchanged.
+ * reports one of these, and its header renders a green checkmark (satisfied) or a red dot with a
+ * failure count (violated) accordingly. Filters with no pass/fail meaning return {@link #none()}
+ * and render unchanged.
  *
  * Always evaluated over the whole roster, never the currently-visible rows — a filter must not be
  * able to turn its own indicator green by hiding its failures.
