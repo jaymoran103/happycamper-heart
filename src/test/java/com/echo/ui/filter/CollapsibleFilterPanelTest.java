@@ -14,6 +14,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.echo.filter.AssertionResult;
+
+import static com.echo.ui.filter.FilterTestSupport.findAssertionLabel;
+
 /**
  * Tests for the CollapsibleFilterPanel class.
  */
@@ -96,6 +100,45 @@ public class CollapsibleFilterPanelTest {
 
         // Verify the nested content is accessible
         assertTrue(containsComponent(panel, nestedLabel));
+    }
+
+    @Test
+    @DisplayName("A panel with no assertion hides the indicator")
+    public void testAssertionIndicatorHiddenByDefault() {
+        JLabel indicator = findAssertionLabel(panel);
+        assertNotNull(indicator);
+        assertFalse(indicator.isVisible());
+    }
+
+    @Test
+    @DisplayName("A satisfied assertion shows a green dot with no count")
+    public void testSatisfiedAssertionIndicator() {
+        panel.setAssertion(AssertionResult.of(0, "camper", "Everything holds"));
+
+        JLabel indicator = findAssertionLabel(panel);
+        assertTrue(indicator.isVisible());
+        assertEquals("●", indicator.getText());
+        assertEquals(FilterSidebar.ASSERTION_PASS_COLOR, indicator.getForeground());
+    }
+
+    @Test
+    @DisplayName("A violated assertion shows a red dot with the failure count")
+    public void testViolatedAssertionIndicator() {
+        panel.setAssertion(AssertionResult.of(12, "camper", "Everything holds"));
+
+        JLabel indicator = findAssertionLabel(panel);
+        assertTrue(indicator.isVisible());
+        assertEquals("● 12", indicator.getText());
+        assertEquals(FilterSidebar.ASSERTION_FAIL_COLOR, indicator.getForeground());
+    }
+
+    @Test
+    @DisplayName("none() hides the indicator again")
+    public void testNoneHidesIndicator() {
+        panel.setAssertion(AssertionResult.of(3, "camper", "Everything holds"));
+        panel.setAssertion(AssertionResult.none());
+
+        assertFalse(findAssertionLabel(panel).isVisible());
     }
 
     /**

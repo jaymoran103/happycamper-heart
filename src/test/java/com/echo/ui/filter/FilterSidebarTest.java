@@ -3,11 +3,14 @@ package com.echo.ui.filter;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import javax.swing.JLabel;
 
 import com.echo.domain.Camper;
 import com.echo.domain.EnhancedRoster;
@@ -16,6 +19,9 @@ import com.echo.filter.AssignmentFilter;
 import com.echo.filter.FilterManager;
 import com.echo.filter.RosterFilter;
 import com.echo.filter.SortedProgramFilter;
+import com.echo.filter.SwimLevelFilter;
+
+import static com.echo.ui.filter.FilterTestSupport.findAssertionLabel;
 
 /**
  * Tests for the FilterSidebar class.
@@ -146,5 +152,47 @@ public class FilterSidebarTest {
         int componentCount = sidebar.getComponentCount();
         sidebar.updateFilterPanels();
         assertTrue(sidebar.getComponentCount() >= componentCount);
+    }
+
+    @Test
+    @DisplayName("Sidebar shows an indicator for a filter that has an assertion")
+    public void testSidebarShowsAssertionIndicator() {
+        // The roster built in setUp() registers PROGRAM and ROUND_COUNT, so the Programs
+        // assertion is applicable.
+        RosterFilter programFilter = new SortedProgramFilter();
+        filterManager.addFilter(programFilter);
+        sidebar.addFilterPanel(programFilter);
+
+        CollapsibleFilterPanel panel = sidebar.getFilterPanel(programFilter.getFilterId());
+        assertNotNull(panel);
+
+        JLabel indicator = findAssertionLabel(panel);
+        assertNotNull(indicator);
+        assertTrue(indicator.isVisible());
+    }
+
+    @Test
+    @DisplayName("Sidebar shows no indicator for a filter with no assertion")
+    public void testSidebarHidesIndicatorForNonAssertion() {
+        RosterFilter assignmentFilter = new AssignmentFilter();
+        filterManager.addFilter(assignmentFilter);
+        sidebar.addFilterPanel(assignmentFilter);
+
+        CollapsibleFilterPanel panel = sidebar.getFilterPanel(assignmentFilter.getFilterId());
+        assertNotNull(panel);
+        assertFalse(findAssertionLabel(panel).isVisible());
+    }
+
+    @Test
+    @DisplayName("Sidebar hides the indicator when the assertion's column is absent")
+    public void testSidebarHidesIndicatorForMissingColumn() {
+        // setUp()'s roster has no Aquatic Conflicts column, so this assertion is not applicable.
+        RosterFilter swimFilter = new SwimLevelFilter();
+        filterManager.addFilter(swimFilter);
+        sidebar.addFilterPanel(swimFilter);
+
+        CollapsibleFilterPanel panel = sidebar.getFilterPanel(swimFilter.getFilterId());
+        assertNotNull(panel);
+        assertFalse(findAssertionLabel(panel).isVisible());
     }
 }

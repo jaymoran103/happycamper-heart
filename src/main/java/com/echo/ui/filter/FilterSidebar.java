@@ -36,6 +36,12 @@ public class FilterSidebar extends JPanel {
     public static final Color HEADER_COLOR_HIGHLIGHT = new Color(190, 210, 240); //Same as TableColors.SELECTED_EVEN. FUTURE centralize all colors somewhere?
     public static final Color FILTER_COLOR_EXPANDED = new Color(contentTone,contentTone,contentTone);
 
+    // Assertion indicator colors (prototype). TableColors.FLAGGED_EVEN is the app's established
+    // "something is wrong" red, but as a pale row tint it has too little contrast against the
+    // header gray to read as a small dot — these are saturated members of the same hue families.
+    public static final Color ASSERTION_PASS_COLOR = new Color(46, 125, 50);
+    public static final Color ASSERTION_FAIL_COLOR = new Color(178, 34, 34);
+
     /**
      * Creates a new FilterSidebar.
      *
@@ -95,6 +101,10 @@ public class FilterSidebar extends JPanel {
             if (panel != null) {
                 filterPanels.put(filter.getFilterId(), panel);
                 contentPanel.add(panel);
+
+                // Assertion status is whole-roster and does not change with checkbox state, so it
+                // is computed once here, at panel-creation time.
+                panel.setAssertion(filter.checkAssertion(roster));
             }
 
         } catch (Exception e) {
