@@ -1,6 +1,7 @@
 package com.echo.filter;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JCheckBox;
@@ -8,6 +9,7 @@ import javax.swing.JCheckBox;
 import com.echo.domain.Camper;
 import com.echo.domain.EnhancedRoster;
 import com.echo.domain.RosterHeader;
+import com.echo.feature.ProgramFeature;
 import com.echo.ui.filter.CollapsibleFilterPanel;
 import com.echo.ui.filter.ProgramFilterBuilder;
 
@@ -121,5 +123,20 @@ public class SortedProgramFilter implements RosterFilter {
         return isProgramVisible(program);
     }
 
+    @Override
+    public AssertionResult checkAssertion(EnhancedRoster roster) {
+        if (roster == null || !roster.hasHeader(RosterHeader.PROGRAM)) {
+            return AssertionResult.none();
+        }
+
+        // getProgramsByRoundCount buckets programs by round count; key -1 is "Mixed", meaning the
+        // program's campers disagree on how many rounds they have. That is the only place a
+        // round-count inconsistency can exist, so the assertion is simply that the bucket is empty.
+        List<String> mixedPrograms = ProgramFeature.getProgramsByRoundCount(roster).get(-1);
+        int failures = (mixedPrograms == null) ? 0 : mixedPrograms.size();
+
+        return AssertionResult.of(failures, "program",
+            "Rounds assigned are consistent for each program");
+    }
 
 }

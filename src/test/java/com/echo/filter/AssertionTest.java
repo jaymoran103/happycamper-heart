@@ -1,6 +1,8 @@
 package com.echo.filter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -229,5 +231,63 @@ public class AssertionTest {
         assertFalse(new AssignmentFilter().checkAssertion(roster).applicable());
         assertFalse(new TextSearchFilter().checkAssertion(roster).applicable());
         assertFalse(new ActivityFilter().checkAssertion(roster).applicable());
+    }
+
+    /**
+     * Builds a roster of programs with the given round counts. Passing two different counts for the
+     * same program name makes that program "Mixed".
+     */
+    static EnhancedRoster rosterWithPrograms(String... programAndRoundPairs) {
+        EnhancedRoster roster = new EnhancedRoster();
+        roster.addHeader(RosterHeader.PROGRAM);
+        roster.addHeader(RosterHeader.ROUND_COUNT);
+
+        int i = 1;
+        for (int p = 0; p < programAndRoundPairs.length; p += 2) {
+            Map<String, String> data = new HashMap<>();
+            data.put(RosterHeader.PROGRAM.standardName, programAndRoundPairs[p]);
+            data.put(RosterHeader.ROUND_COUNT.standardName, programAndRoundPairs[p + 1]);
+            roster.addCamper(new Camper("p" + i++, data));
+        }
+        return roster;
+    }
+
+    @Test
+    @DisplayName("Programs assertion is satisfied when every program has a consistent round count")
+    public void testProgramsAssertionConsistent() {
+        EnhancedRoster roster = rosterWithPrograms(
+            "Program A", "3", "Program A", "3",
+            "Program B", "2", "Program B", "2",
+            "Program C", "1");
+
+        AssertionResult result = new SortedProgramFilter().checkAssertion(roster);
+
+        assertTrue(result.applicable());
+        assertTrue(result.satisfied());
+        assertEquals("program", result.unit());
+    }
+
+    @Test
+    @DisplayName("Programs assertion counts programs with inconsistent round counts")
+    public void testProgramsAssertionMixed() {
+        EnhancedRoster roster = rosterWithPrograms(
+            "Program A", "3", "Program A", "3",
+            "Program D", "2", "Program D", "3",
+            "Program E", "1", "Program E", "2");
+
+        AssertionResult result = new SortedProgramFilter().checkAssertion(roster);
+
+        assertFalse(result.satisfied());
+        assertEquals(2, result.failureCount());
+        assertEquals("program", result.unit());
+        assertEquals("2 programs fail", result.statusText());
+    }
+
+    @Test
+    @DisplayName("Programs assertion returns none() without a Program column")
+    public void testProgramsAssertionWithoutProgramColumn() {
+        EnhancedRoster roster = rosterWithFlagValues(RosterHeader.ROUND_COUNT, "3");
+
+        assertFalse(new SortedProgramFilter().checkAssertion(roster).applicable());
     }
 }
