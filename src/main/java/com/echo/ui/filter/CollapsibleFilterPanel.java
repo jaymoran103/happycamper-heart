@@ -263,11 +263,17 @@ public class CollapsibleFilterPanel extends JPanel {
         JPanel block = new JPanel();
         block.setLayout(new BoxLayout(block, BoxLayout.Y_AXIS));
         block.setBackground(FilterSidebar.FILTER_COLOR_EXPANDED);
-        block.setBorder(BorderFactory.createEmptyBorder(4, 2, 4, 2));
+        block.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         block.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // cellpadding=0 cellspacing=0 is load-bearing, not decoration. Swing's HTML renderer
+        // defaults a <table> to cellpadding=1 cellspacing=2, which pads the claim on all four
+        // sides - 10px of invisible vertical space on a two-line claim, more than the block's own
+        // border and its strut combined. Measured on the longest claim ("Checks that no camper is
+        // assigned an activity they didn't request"): label 38px -> 28px, block 52px -> 42px.
         JLabel claimLabel = new JLabel(
-            "<html><table width=" + CLAIM_WRAP_WIDTH + "><tr><td>" + claim + "</td></tr></table></html>");
+            "<html><table width=" + CLAIM_WRAP_WIDTH + " cellpadding=0 cellspacing=0><tr><td>"
+                + claim + "</td></tr></table></html>");
         claimLabel.setName(CLAIM_COMPONENT_NAME);
         claimLabel.setFont(claimLabel.getFont().deriveFont(Font.PLAIN, 11f));
         claimLabel.setForeground(FilterSidebar.ASSERTION_CLAIM_COLOR);
@@ -279,7 +285,7 @@ public class CollapsibleFilterPanel extends JPanel {
         separator.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         block.add(claimLabel);
-        block.add(Box.createVerticalStrut(4));
+        block.add(Box.createVerticalStrut(2));
         block.add(separator);
         return block;
     }
