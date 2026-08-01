@@ -73,20 +73,36 @@ public class CollapsibleFilterPanelTest {
         // Add the content panel
         panel.addContent(contentPanel);
 
-        // Verify the content is visible initially
-        assertTrue(isContentVisible(panel, testLabel));
-
-        // Toggle the expanded state
-        panel.setExpanded(false);
-
-        // Verify the content is hidden
+        // Panels are built collapsed, so the content starts hidden
+        assertFalse(panel.isExpanded());
         assertFalse(isContentVisible(panel, testLabel));
 
-        // Toggle the expanded state again
+        // Toggle the expanded state
         panel.setExpanded(true);
 
-        // Verify the content is visible again
+        // Verify the content is visible
+        assertTrue(panel.isExpanded());
         assertTrue(isContentVisible(panel, testLabel));
+
+        // Toggle the expanded state again
+        panel.setExpanded(false);
+
+        // Verify the content is hidden again
+        assertFalse(panel.isExpanded());
+        assertFalse(isContentVisible(panel, testLabel));
+    }
+
+    @Test
+    @DisplayName("A freshly built panel is collapsed, glyph and content agreeing")
+    public void testPanelStartsCollapsed() {
+        JLabel testLabel = new JLabel("Test Content");
+        panel.addContent(testLabel);
+
+        assertFalse(panel.isExpanded());
+        assertFalse(isContentVisible(panel, testLabel));
+        // The toggle glyph is the header's first label; it must not advertise "expanded" while the
+        // content is hidden.
+        assertEquals("+", findToggleLabel(panel).getText());
     }
 
     @Test
@@ -297,6 +313,12 @@ public class CollapsibleFilterPanelTest {
         Container claimBlock = claimLabel.getParent();
         Container contentPanel = claimBlock.getParent();
 
+        // Panels are built collapsed, which hides contentPanel and shrinks the panel's preferred
+        // width to the header alone - the width assertion below would then pass no matter how badly
+        // the content laid out. Expand explicitly so the guard keeps measuring what it was written
+        // to protect. Do not remove this as redundant.
+        panel.setExpanded(true);
+
         assertSame(claimBlock, contentPanel.getComponent(0),
             "the claim must be the content panel's first child, ahead of the sibling checkbox "
                 + "row - the assertion, then the controls that isolate the rows it concerns");
@@ -321,6 +343,15 @@ public class CollapsibleFilterPanelTest {
             }
         }
         return count;
+    }
+
+    /**
+     * Helper method to find the header's toggle glyph label. The badge is added directly to the
+     * header panel, so its parent is the header; the toggle glyph is that header's first child.
+     */
+    private JLabel findToggleLabel(CollapsibleFilterPanel panel) {
+        Container header = findAssertionLabel(panel).getParent();
+        return (JLabel) header.getComponent(0);
     }
 
     /**

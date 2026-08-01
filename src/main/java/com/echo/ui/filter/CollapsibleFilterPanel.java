@@ -63,8 +63,10 @@ public class CollapsibleFilterPanel extends JPanel {
     /** The inserted claim block, or null when this panel shows no assertion. */
     private JPanel claimBlock;
 
-    // State
-    private boolean expanded = true;
+    // State. Panels start collapsed: a collapsed panel is just its 30px header, and the header
+    // still carries the assertion badge, so a fresh sidebar reads as a compact stack of
+    // title + status rows. Kept in sync with the setExpanded(false) call in the constructor.
+    private boolean expanded = false;
     private final String title;
 
     // String tooltip
@@ -88,8 +90,10 @@ public class CollapsibleFilterPanel extends JPanel {
         contentPanel = createContentPanel();
         add(contentPanel, BorderLayout.CENTER);
 
-        // Set initial state
-        setExpanded(true);
+        // Set initial state. setExpanded is the single source of truth for the toggle glyph, the
+        // header's etched-border direction and the content panel's visibility, so this one call
+        // makes all three agree with the `expanded` field's initialiser above.
+        setExpanded(false);
     }
 
 
@@ -109,8 +113,9 @@ public class CollapsibleFilterPanel extends JPanel {
         panel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         panel.setToolTipText(title + " - " + GENERIC_TOOLTIP);
 
-        // Create toggle indicator
-        toggleLabel = new JLabel("-");
+        // Create toggle indicator. "+" matches the collapsed initial state; setExpanded() owns it
+        // from then on.
+        toggleLabel = new JLabel("+");
         toggleLabel.setFont(toggleLabel.getFont().deriveFont(Font.BOLD,15));
         toggleLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 8));
 

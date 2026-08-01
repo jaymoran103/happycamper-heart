@@ -213,8 +213,8 @@ public class FilterSidebarTest {
         int usableWidth = FilterSidebar.PREFERRED_WIDTH - scrollBarAllowance;
 
         // Give PreferenceFilter's assertion a backing column so it renders its claim block too -
-        // "No camper is assigned an activity they didn't request" is the longest claim of the
-        // five assertion filters, so it's the tightest fit against CLAIM_WRAP_WIDTH.
+        // "Checks that no camper is assigned an activity they didn't request" is the longest claim
+        // of the five assertion filters, so it's the tightest fit against CLAIM_WRAP_WIDTH.
         roster.addHeader(RosterHeader.UNREQUESTED_ACTIVITIES.standardName);
 
         RosterFilter programFilter = new SortedProgramFilter();
@@ -230,6 +230,12 @@ public class FilterSidebarTest {
             // Confirm this actually exercises the claim block (and therefore CLAIM_WRAP_WIDTH) -
             // a non-applicable assertion would trivially "fit" without testing anything.
             assertNotNull(findClaimLabel(panel));
+
+            // Panels are built collapsed, which hides the content area and shrinks the panel's
+            // preferred width to the header alone - the width assertion below would then pass for
+            // every panel regardless of how the claim block wraps. Expand explicitly so this keeps
+            // guarding CLAIM_WRAP_WIDTH. Do not remove this as redundant.
+            panel.setExpanded(true);
 
             int preferredWidth = panel.getPreferredSize().width;
             assertTrue(preferredWidth <= usableWidth,
