@@ -36,9 +36,8 @@ public class FilterSidebar extends JPanel {
     public static final Color HEADER_COLOR_HIGHLIGHT = new Color(190, 210, 240); //Same as TableColors.SELECTED_EVEN. FUTURE centralize all colors somewhere?
     public static final Color FILTER_COLOR_EXPANDED = new Color(contentTone,contentTone,contentTone);
 
-    // Assertion indicator colors (prototype). TableColors.FLAGGED_EVEN is the app's established
-    // "something is wrong" red, but as a pale row tint it has too little contrast against the
-    // header gray to read as a small dot — these are saturated members of the same hue families.
+    // Assertion indicator colors (prototype). Saturated members of the same hue families as the
+    // pale badge fills below, used for the glyph text so it reads clearly against the tinted fill.
     public static final Color ASSERTION_PASS_COLOR = new Color(46, 125, 50);
     public static final Color ASSERTION_FAIL_COLOR = new Color(178, 34, 34);
 
@@ -84,6 +83,11 @@ public class FilterSidebar extends JPanel {
         JScrollPane scrollPane = new JScrollPane(wrapperPanel);
         scrollPane.setPreferredSize(new Dimension(PREFERRED_WIDTH, 0));
         scrollPane.setBorder(null);
+        // Backstop for CollapsibleFilterPanel.CLAIM_WRAP_WIDTH: that constant is tuned to a
+        // vertical-scrollbar width, but the app sets the system look-and-feel, so the real
+        // scrollbar is 15px on Aqua and 17px on Windows. Without this, a wrap-width tuned to one
+        // platform's scrollbar can still leave a permanent horizontal scrollbar on the other.
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         add(scrollPane, BorderLayout.CENTER);
     }

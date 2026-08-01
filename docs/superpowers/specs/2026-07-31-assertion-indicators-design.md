@@ -22,10 +22,13 @@ Later, assertions replace the visual and functional roles of filters:
 - names gain subheadings: `Programs Filter → Rounds assigned are consistent for each program`,
   `Aquatic Conflicts → Campers are eligible for their water activities`
 
-**This prototype does none of that.** It only makes assertion status visible in the existing filter
-headers. The one forward-looking concession is that each assertion carries its plain-English claim
-string, surfaced as a tooltip, so the demo can show the eventual wording without restructuring the
-sidebar.
+**This prototype does not fully realize that.** The sidebar is still a list of filters, not a
+visualization of an assertion sequence, and filters are not renamed or given subheadings. But it is
+no longer true that status is the only thing made visible: the claim now leads each filter's
+expandable region, above the checkboxes — a genuine partial step toward the third bullet above,
+where a filter acts as the view/control component of its own assertion. The claim's tooltip still
+exists and still matters (see §5c) — it is what carries meaning when a panel is collapsed and the
+claim block is hidden — but it is a supporting detail now, not the sole vehicle for the claim.
 
 ## Decisions
 

@@ -17,11 +17,13 @@ import com.echo.domain.EnhancedRoster;
 import com.echo.domain.RosterHeader;
 import com.echo.filter.AssignmentFilter;
 import com.echo.filter.FilterManager;
+import com.echo.filter.PreferenceFilter;
 import com.echo.filter.RosterFilter;
 import com.echo.filter.SortedProgramFilter;
 import com.echo.filter.SwimLevelFilter;
 
 import static com.echo.ui.filter.FilterTestSupport.findAssertionLabel;
+import static com.echo.ui.filter.FilterTestSupport.findClaimLabel;
 
 /**
  * Tests for the FilterSidebar class.
@@ -194,5 +196,47 @@ public class FilterSidebarTest {
         CollapsibleFilterPanel panel = sidebar.getFilterPanel(swimFilter.getFilterId());
         assertNotNull(panel);
         assertFalse(findAssertionLabel(panel).isVisible());
+    }
+
+    @Test
+    @DisplayName("Assertion-bearing filter panels fit the sidebar viewport, so the horizontal scrollbar stays off")
+    public void testAssertionFilterPanelWidthFitsUsableViewport() {
+        // FilterSidebar now sets HORIZONTAL_SCROLLBAR_NEVER, so a panel that measures wider than
+        // the usable viewport is silently clipped rather than reachable via a scrollbar - this
+        // guard is what would have caught CLAIM_WRAP_WIDTH=245 (261px panels against a 258px
+        // viewport) before it shipped.
+        //
+        // 17 is the vertical scrollbar width on Metal/Windows look-and-feels - the widest common
+        // case - versus 15 on Aqua (macOS). A panel that fits the stricter 17px allowance also
+        // fits comfortably under Aqua's narrower 15px bar, so 17 is the number to guard against.
+        int scrollBarAllowance = 17;
+        int usableWidth = FilterSidebar.PREFERRED_WIDTH - scrollBarAllowance;
+
+        // Give PreferenceFilter's assertion a backing column so it renders its claim block too -
+        // "No camper is assigned an activity they didn't request" is the longest claim of the
+        // five assertion filters, so it's the tightest fit against CLAIM_WRAP_WIDTH.
+        roster.addHeader(RosterHeader.UNREQUESTED_ACTIVITIES.standardName);
+
+        RosterFilter programFilter = new SortedProgramFilter();
+        RosterFilter preferenceFilter = new PreferenceFilter();
+        filterManager.addFilter(programFilter);
+        filterManager.addFilter(preferenceFilter);
+        sidebar.addFilterPanel(programFilter);
+        sidebar.addFilterPanel(preferenceFilter);
+
+        for (RosterFilter filter : new RosterFilter[] {programFilter, preferenceFilter}) {
+            CollapsibleFilterPanel panel = sidebar.getFilterPanel(filter.getFilterId());
+            assertNotNull(panel);
+            // Confirm this actually exercises the claim block (and therefore CLAIM_WRAP_WIDTH) -
+            // a non-applicable assertion would trivially "fit" without testing anything.
+            assertNotNull(findClaimLabel(panel));
+
+            int preferredWidth = panel.getPreferredSize().width;
+            assertTrue(preferredWidth <= usableWidth,
+                filter.getFilterId() + " panel preferred width " + preferredWidth
+                    + "px should fit the " + usableWidth + "px usable sidebar viewport ("
+                    + "PREFERRED_WIDTH " + FilterSidebar.PREFERRED_WIDTH + " minus a "
+                    + scrollBarAllowance + "px vertical-scrollbar allowance)");
+        }
     }
 }

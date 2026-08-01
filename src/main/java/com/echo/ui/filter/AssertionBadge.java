@@ -38,7 +38,9 @@ public class AssertionBadge extends JLabel {
         setOpaque(true);
         setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 
-        // All three, because BoxLayout honours the maximum and would otherwise stretch the badge.
+        // All three, because ComponentUI.getMaximumSize() ignores setPreferredSize and returns the
+        // UI-computed preferred size instead - without an explicit maximum, BoxLayout clamps the
+        // badge down to the glyph's natural height (38x19) rather than stretching it.
         setPreferredSize(FIXED_SIZE);
         setMinimumSize(FIXED_SIZE);
         setMaximumSize(FIXED_SIZE);

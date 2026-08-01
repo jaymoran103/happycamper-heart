@@ -42,7 +42,7 @@ final class FilterTestSupport {
      */
     static JLabel findClaimLabel(Container container) {
         for (Component child : container.getComponents()) {
-            if (child instanceof JLabel label && "assertionClaim".equals(label.getName())) {
+            if (child instanceof JLabel label && CollapsibleFilterPanel.CLAIM_COMPONENT_NAME.equals(label.getName())) {
                 return label;
             }
             if (child instanceof Container nested) {

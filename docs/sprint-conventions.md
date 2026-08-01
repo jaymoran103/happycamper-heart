@@ -68,8 +68,8 @@ entry names what bent, where, and why it's safe.
 ## E1 — filters carry a non-filtering responsibility (assertion status)
 - **Where:** `RosterFilter.checkAssertion` (defaulted) + `AssertionResult` + overrides on
   `PreferenceFilter`, `SwimLevelFilter`, `SwimLessonFilter`, `DuplicateActivityFilter`,
-  `SortedProgramFilter`; rendered by `CollapsibleFilterPanel.setAssertion` and wired in
-  `FilterSidebar.addFilterPanel`.
+  `SortedProgramFilter`; rendered by `AssertionBadge`, `CollapsibleFilterPanel.setAssertion`, and
+  wired in `FilterSidebar.addFilterPanel`.
 - **Bend:** relaxes "a filter is purely a visibility predicate". A filter now also reports whether
   the whole roster satisfies a related assertion, which its own checkbox state does not affect.
 - **Three categories:** column-based (one shared `AssertionResult.forFlagColumn` helper — preference,

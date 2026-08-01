@@ -34,10 +34,24 @@ public class CollapsibleFilterPanel extends JPanel {
     private static final int CONTENT_PADDING = 2;
 
     /**
+     * Swing component name for the in-panel claim label, so tests can locate it without depending
+     * on layout position. Mirrors {@link AssertionBadge#COMPONENT_NAME}.
+     */
+    public static final String CLAIM_COMPONENT_NAME = "assertionClaim";
+
+    /**
      * Wrap width for the claim text. Swing's HTML renderer ignores CSS width on body/div — only a
      * table element's width attribute actually wraps — so this is passed to <table width=...>.
+     *
+     * <p>240px, not the claim's own natural width, because the claim label sits inside several
+     * layers of chrome that all eat into the 258px the sidebar viewport actually offers once its
+     * vertical scrollbar (15-17px depending on look-and-feel) is subtracted from
+     * {@code FilterSidebar.PREFERRED_WIDTH} (275): claim label 240 + this block's 4px border +
+     * the content panel's 4px etched border + 4px padding + this panel's 4px border = 256, leaving
+     * headroom under 258 rather than exceeding it (245 measured 261, which forced a permanent
+     * horizontal scrollbar).
      */
-    private static final int CLAIM_WRAP_WIDTH = 245;
+    private static final int CLAIM_WRAP_WIDTH = 240;
 
     // UI components
     private final JPanel headerPanel;
@@ -249,7 +263,7 @@ public class CollapsibleFilterPanel extends JPanel {
 
         JLabel claimLabel = new JLabel(
             "<html><table width=" + CLAIM_WRAP_WIDTH + "><tr><td>" + claim + "</td></tr></table></html>");
-        claimLabel.setName("assertionClaim");
+        claimLabel.setName(CLAIM_COMPONENT_NAME);
         claimLabel.setFont(claimLabel.getFont().deriveFont(Font.PLAIN, 11f));
         claimLabel.setForeground(FilterSidebar.ASSERTION_CLAIM_COLOR);
         claimLabel.setAlignmentX(Component.LEFT_ALIGNMENT);

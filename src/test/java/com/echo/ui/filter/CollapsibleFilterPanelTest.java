@@ -127,7 +127,7 @@ public class CollapsibleFilterPanelTest {
     }
 
     @Test
-    @DisplayName("A violated assertion shows a red dot with the failure count")
+    @DisplayName("A violated assertion shows the failure count in the fail color")
     public void testViolatedAssertionIndicator() {
         panel.setAssertion(AssertionResult.of(12, "camper", "Everything holds"));
 
@@ -176,7 +176,9 @@ public class CollapsibleFilterPanelTest {
     @DisplayName("The badge is the same size whatever it displays")
     public void testBadgeSizeIsFixed() {
         panel.setAssertion(AssertionResult.of(0, "camper", "Everything holds"));
-        Dimension satisfied = findAssertionLabel(panel).getPreferredSize();
+        JLabel indicator = findAssertionLabel(panel);
+        Dimension satisfied = indicator.getPreferredSize();
+        Dimension satisfiedMax = indicator.getMaximumSize();
 
         panel.setAssertion(AssertionResult.of(7, "camper", "Everything holds"));
         Dimension singleDigit = findAssertionLabel(panel).getPreferredSize();
@@ -187,6 +189,12 @@ public class CollapsibleFilterPanelTest {
         assertEquals(satisfied, singleDigit);
         assertEquals(satisfied, doubleDigit);
         assertEquals(new Dimension(38, 22), satisfied);
+
+        // getMaximumSize() matters as much as getPreferredSize(): BoxLayout honours the maximum,
+        // and ComponentUI.getMaximumSize() ignores setPreferredSize entirely, so dropping
+        // setMaximumSize renders the badge at 38x19 (the glyph's natural height) at a shifted y
+        // while a preferred-size-only assertion here would stay green.
+        assertEquals(new Dimension(38, 22), satisfiedMax);
     }
 
     @Test
@@ -305,7 +313,7 @@ public class CollapsibleFilterPanelTest {
     private int countClaimLabels(java.awt.Container container) {
         int count = 0;
         for (java.awt.Component child : container.getComponents()) {
-            if (child instanceof JLabel label && "assertionClaim".equals(label.getName())) {
+            if (child instanceof JLabel label && CollapsibleFilterPanel.CLAIM_COMPONENT_NAME.equals(label.getName())) {
                 count++;
             }
             if (child instanceof java.awt.Container nested) {
