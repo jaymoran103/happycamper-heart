@@ -148,9 +148,16 @@ rows: a preview of the eventual assertion-sequence sidebar, for free.
 A small `JLabel` subclass rather than more logic inside `CollapsibleFilterPanel`, which is focused
 today and would otherwise be doing three jobs.
 
-- **Fixed 38×22**, enforced via `setPreferredSize`, `setMinimumSize`, *and* `setMaximumSize` —
-  `BoxLayout` honours max. The box is identical for `✓`, `1`, `10`, and `12`: size never varies with
-  status or digit count. This is a hard requirement, not a nicety.
+- **Fixed 38×22**, enforced via `setPreferredSize`, `setMinimumSize`, *and* `setMaximumSize`. The box
+  is identical for `✓`, `1`, `10`, and `12`: size never varies with status or digit count. This is a
+  hard requirement, not a nicety.
+
+  All three setters are load-bearing, and the reason for the third is counter-intuitive enough to be
+  worth stating: `ComponentUI.getMaximumSize()` returns the UI's *computed* preferred size and
+  ignores `setPreferredSize`, so without an explicit maximum `BoxLayout` **shrinks** the badge to the
+  glyph's natural height — measured at 38×19, sitting 2px lower. It does not stretch it. Dropping
+  `setMaximumSize` leaves a preferred-size assertion green while the render is wrong, so the badge's
+  maximum size is asserted directly.
 - `setOpaque(true)`, background `ASSERTION_PASS_BG` / `ASSERTION_FAIL_BG`.
 - `BorderFactory.createEtchedBorder(EtchedBorder.LOWERED)` — a recessed indicator well, matching the
   content panels' treatment.
