@@ -63,6 +63,16 @@ public class DialogConstants {
     public static final Color TEXT_COLOR_DISABLED = Color.GRAY;
     public static final Color TEXT_COLOR_ERROR = Color.RED;
 
+    // Stroke color for the dashed border a file selector wears while a valid file drag is overhead.
+    // Not a new color - the same gray already used for WARNINGTABLE_COLOR_GRID and disabled text.
+    // The dashed pattern and the hint text carry the signal, so the line itself stays neutral.
+    public static final Color DROP_BORDER_ACTIVE = Color.GRAY;
+
+    // Fill for the one selector directly under a hovering file drag - tier two of the drag feedback,
+    // where tier one is the dashed border every candidate shows. Aliases DIALOG_COLOR_BOTTOM, the
+    // app's slightly-recessed panel gray, so "darker" costs no new color.
+    public static final Color DROP_COLOR_HOVER = DIALOG_COLOR_BOTTOM;
+
 
 
 
