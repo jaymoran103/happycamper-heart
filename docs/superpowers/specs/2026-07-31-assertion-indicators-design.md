@@ -176,22 +176,43 @@ badge entirely, leaving the header exactly as it renders without this feature.
 
 #### 5b. The claim block
 
-`setAssertion` inserts, at index 0 of the content panel, a claim label followed by a horizontal
-separator — above the checkboxes. Ordering already works: `FilterSidebar.addFilterPanel` calls
+`setAssertion` inserts, at index 0 of the content panel, a claim label inside a modest outlined box
+— above the checkboxes. Ordering already works: `FilterSidebar.addFilterPanel` calls
 `createFilterPanel(roster)` (which populates the content) and only then `setAssertion`, so index 0
 lands above existing content.
 
 - Claim text at `(45, 45, 45)`, plain weight, 11pt — near the weight of the surrounding labels, with
-  the separator and the checkboxes' bold weight carrying the hierarchy instead of low contrast.
-- ~4px padding above and below, so it crowds neither the panel border nor the separator.
-- A non-applicable assertion inserts nothing — no claim, no separator.
+  the box and the checkboxes' bold weight carrying the hierarchy instead of low contrast.
+- The box is a 1px `LineBorder` in `FilterSidebar.ASSERTION_CLAIM_BORDER_COLOR` `(160, 160, 160)`
+  with 3px/4px interior padding, and a 4px bottom margin before the first checkbox. Deliberately a
+  flat line, **not** an `EtchedBorder`: the block sits inside the content panel's own
+  `EtchedBorder.LOWERED` and one panel up from the header's recessed badge, so a second bevel
+  renders as muddy doubled grooves and reads as a second status chip. Both were rendered before
+  choosing.
+- **There is no separator.** An earlier iteration put a `JSeparator` under the claim; the box
+  already separates the explanation from the checkboxes, so the rule was removed when the box
+  landed. Do not reintroduce it.
+- A non-applicable assertion inserts nothing — no claim, no box.
 - `setAssertion` must be idempotent: remove any previously inserted claim block before inserting, so
   a second call cannot stack duplicates.
 
-**Wrapping gotcha, do not rediscover this:** `<html><body style='width:245px'>` is *silently ignored*
+**Wrapping gotcha, do not rediscover this:** `<html><body style='width:228px'>` is *silently ignored*
 by Swing's HTML renderer — the label renders one long line and clips mid-word. Only
-`<html><table width=245><tr><td>…</td></tr></table></html>` actually wraps. The width must be passed
+`<html><table width=228><tr><td>…</td></tr></table></html>` actually wraps. The width must be passed
 to the `table` element.
+
+**Density gotcha, also do not rediscover:** that table needs `cellpadding=0 cellspacing=0`. Swing's
+HTML renderer defaults a table to `cellpadding=1 cellspacing=2` and pads the claim on all four
+sides — 10px of invisible vertical space on a two-line claim, more than the block's own border and
+padding combined (label 38px → 28px on the longest claim).
+
+`CLAIM_WRAP_WIDTH` is 228, down from 240, because the box costs 10px of horizontal room (2px border
++ 8px padding). The panel then measures 250px against the 258px usable viewport
+(`PREFERRED_WIDTH` 275 − a 17px vertical scrollbar). Overflow is not merely ugly: the sidebar sets
+`HORIZONTAL_SCROLLBAR_NEVER`, so a too-wide panel is silently clipped. Two tests guard the budget —
+`CollapsibleFilterPanelTest.testClaimBlockPrecedesSiblingContentWithoutWidthBlowup` and
+`FilterSidebarTest.testAssertionFilterPanelWidthFitsUsableViewport` — and both explicitly expand the
+panel first, since panels now build collapsed and a collapsed panel measures only its header.
 
 #### 5c. Tooltip
 

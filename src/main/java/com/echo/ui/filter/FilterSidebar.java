@@ -48,9 +48,15 @@ public class FilterSidebar extends JPanel {
     public static final Color ASSERTION_PASS_BG = new Color(198, 214, 198);
     public static final Color ASSERTION_FAIL_BG = new Color(228, 198, 198);
 
-    // Near the weight of the surrounding labels — the separator and the checkboxes' bold weight
+    // Near the weight of the surrounding labels — the claim box and the checkboxes' bold weight
     // carry the hierarchy, rather than washing the claim out with low contrast.
     public static final Color ASSERTION_CLAIM_COLOR = new Color(45, 45, 45);
+
+    // Outline of the box around the claim. A flat mid-gray rather than another etched bevel: the
+    // claim box sits inside the content panel's own EtchedBorder.LOWERED and one panel up from the
+    // header's recessed badge, so a second bevel reads as muddy nested grooves and as a second
+    // status chip. A single flat line bounds the explanation without competing with either.
+    public static final Color ASSERTION_CLAIM_BORDER_COLOR = new Color(160, 160, 160);
 
     /**
      * Creates a new FilterSidebar.

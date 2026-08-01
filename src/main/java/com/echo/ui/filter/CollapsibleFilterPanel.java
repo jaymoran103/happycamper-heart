@@ -16,8 +16,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 
@@ -43,15 +41,31 @@ public class CollapsibleFilterPanel extends JPanel {
      * Wrap width for the claim text. Swing's HTML renderer ignores CSS width on body/div — only a
      * table element's width attribute actually wraps — so this is passed to <table width=...>.
      *
-     * <p>240px, not the claim's own natural width, because the claim label sits inside several
+     * <p>228px, not the claim's own natural width, because the claim label sits inside several
      * layers of chrome that all eat into the 258px the sidebar viewport actually offers once its
      * vertical scrollbar (15-17px depending on look-and-feel) is subtracted from
-     * {@code FilterSidebar.PREFERRED_WIDTH} (275): claim label 240 + this block's 4px border +
-     * the content panel's 4px etched border + 4px padding + this panel's 4px border = 256, leaving
-     * headroom under 258 rather than exceeding it (245 measured 261, which forced a permanent
-     * horizontal scrollbar).
+     * {@code FilterSidebar.PREFERRED_WIDTH} (275). Horizontal budget:
+     *
+     * <pre>
+     *   claim label                            228
+     *   claim box: 1px line border  (x2)         2
+     *   claim box: 4px inner padding (x2)        8
+     *   content panel: 2px etched border (x2)    4
+     *   content panel: 2px padding (x2)          4
+     *   this panel: 2px empty border (x2)        4
+     *                                          ---
+     *   panel preferred width                  250   (measured; 8px under the 258 limit)
+     * </pre>
+     *
+     * <p>The box added in the restyle costs 10px of the width that used to go to text, so this
+     * dropped from 240 (which measured 250 + 10 = 260, over budget) to 228. There is room to
+     * spare: every current claim still wraps to two lines at any width down to 190, and the
+     * longest ("Checks that no camper is assigned an activity they didn't request") only takes a
+     * third line below 190. Overflow matters because the sidebar sets
+     * {@code HORIZONTAL_SCROLLBAR_NEVER} — too wide is silently clipped, not scrollable.
+     * {@code FilterSidebarTest.testAssertionFilterPanelWidthFitsUsableViewport} guards this.
      */
-    private static final int CLAIM_WRAP_WIDTH = 240;
+    private static final int CLAIM_WRAP_WIDTH = 228;
 
     // UI components
     private final JPanel headerPanel;
@@ -225,8 +239,8 @@ public class CollapsibleFilterPanel extends JPanel {
     /**
      * Shows this filter's assertion status in the header as a fixed-size tinted badge — a green
      * checkmark when satisfied, the red failure count when not, hidden entirely when the filter is
-     * not an assertion — and places the assertion's plain-English claim at the top of the
-     * expandable content area, above a separator, above the checkboxes.
+     * not an assertion — and places the assertion's plain-English claim in a bounded box at the
+     * top of the expandable content area, above the checkboxes.
      *
      * @param assertion the assertion outcome; null or a non-applicable result hides the badge and
      *                  removes the claim block
@@ -252,9 +266,13 @@ public class CollapsibleFilterPanel extends JPanel {
     }
 
     /**
-     * Builds the claim block: the assertion's plain-English claim above a separator, sized to sit
-     * at the top of the content panel and read as "the assertion, then the controls that isolate
-     * the rows it concerns".
+     * Builds the claim block: the assertion's plain-English claim inside a modest outlined box,
+     * sized to sit at the top of the content panel and read as "the assertion, then the controls
+     * that isolate the rows it concerns".
+     *
+     * <p>The box replaced an earlier {@code JSeparator} beneath the claim. The box already
+     * separates the explanation from the checkboxes, so keeping the rule as well was two
+     * separators doing one job.
      *
      * @param claim the plain-English assertion text
      * @return the block, ready to insert at index 0 of the content panel
@@ -263,14 +281,20 @@ public class CollapsibleFilterPanel extends JPanel {
         JPanel block = new JPanel();
         block.setLayout(new BoxLayout(block, BoxLayout.Y_AXIS));
         block.setBackground(FilterSidebar.FILTER_COLOR_EXPANDED);
-        block.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        block.setBorder(BorderFactory.createCompoundBorder(
+            // Outer: no top margin (the content panel's own 2px padding already supplies one), a
+            // 4px bottom margin so the box does not sit against the first checkbox.
+            BorderFactory.createEmptyBorder(0, 0, 4, 0),
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(FilterSidebar.ASSERTION_CLAIM_BORDER_COLOR, 1),
+                BorderFactory.createEmptyBorder(3, 4, 3, 4))));
         block.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // cellpadding=0 cellspacing=0 is load-bearing, not decoration. Swing's HTML renderer
         // defaults a <table> to cellpadding=1 cellspacing=2, which pads the claim on all four
         // sides - 10px of invisible vertical space on a two-line claim, more than the block's own
-        // border and its strut combined. Measured on the longest claim ("Checks that no camper is
-        // assigned an activity they didn't request"): label 38px -> 28px, block 52px -> 42px.
+        // border and padding combined. Measured on the longest claim ("Checks that no camper is
+        // assigned an activity they didn't request"): label 38px -> 28px.
         JLabel claimLabel = new JLabel(
             "<html><table width=" + CLAIM_WRAP_WIDTH + " cellpadding=0 cellspacing=0><tr><td>"
                 + claim + "</td></tr></table></html>");
@@ -279,14 +303,7 @@ public class CollapsibleFilterPanel extends JPanel {
         claimLabel.setForeground(FilterSidebar.ASSERTION_CLAIM_COLOR);
         claimLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
-        // Without a max-height cap a JSeparator stretches to fill the BoxLayout's spare vertical space.
-        separator.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-        separator.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         block.add(claimLabel);
-        block.add(Box.createVerticalStrut(2));
-        block.add(separator);
         return block;
     }
 
