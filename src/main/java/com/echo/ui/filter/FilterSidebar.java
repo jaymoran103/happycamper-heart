@@ -45,8 +45,8 @@ public class FilterSidebar extends JPanel {
     // makes status scannable — color covers the whole badge, so the sidebar reads as a column of
     // green and red without the reader parsing digits. Continuity, not novelty:
     // TableColors.FLAGGED_EVEN is already the app's pale-red "something is wrong" row tint.
-    public static final Color ASSERTION_PASS_BG = new Color(198, 214, 198);
-    public static final Color ASSERTION_FAIL_BG = new Color(228, 198, 198);
+    public static final Color ASSERTION_PASS_BG = new Color(143, 185, 143);
+    public static final Color ASSERTION_FAIL_BG = new Color(215, 146, 146);
 
     // Near the weight of the surrounding labels — the claim box and the checkboxes' bold weight
     // carry the hierarchy, rather than washing the claim out with low contrast.

@@ -1,5 +1,6 @@
 package com.echo.ui.filter;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 
@@ -56,9 +57,7 @@ public class AssertionBadge extends JLabel {
     public void showResult(AssertionResult assertion) {
         boolean satisfied = assertion.satisfied();
         setText(satisfied ? "✓" : String.valueOf(assertion.failureCount()));
-        setForeground(satisfied
-            ? FilterSidebar.ASSERTION_PASS_COLOR
-            : FilterSidebar.ASSERTION_FAIL_COLOR);
+        setForeground(Color.BLACK);
         setBackground(satisfied
             ? FilterSidebar.ASSERTION_PASS_BG
             : FilterSidebar.ASSERTION_FAIL_BG);

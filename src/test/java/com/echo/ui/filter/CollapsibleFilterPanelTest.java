@@ -1,5 +1,6 @@
 package com.echo.ui.filter;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -139,7 +140,7 @@ public class CollapsibleFilterPanelTest {
         JLabel indicator = findAssertionLabel(panel);
         assertTrue(indicator.isVisible());
         assertEquals("✓", indicator.getText());
-        assertEquals(FilterSidebar.ASSERTION_PASS_COLOR, indicator.getForeground());
+        assertEquals(Color.BLACK, indicator.getForeground());
     }
 
     @Test
@@ -150,7 +151,7 @@ public class CollapsibleFilterPanelTest {
         JLabel indicator = findAssertionLabel(panel);
         assertTrue(indicator.isVisible());
         assertEquals("12", indicator.getText());
-        assertEquals(FilterSidebar.ASSERTION_FAIL_COLOR, indicator.getForeground());
+        assertEquals(Color.BLACK, indicator.getForeground());
     }
 
     @Test
