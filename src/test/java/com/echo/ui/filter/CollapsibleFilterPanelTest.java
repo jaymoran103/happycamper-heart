@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -11,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -245,6 +247,58 @@ public class CollapsibleFilterPanelTest {
         panel.setAssertion(AssertionResult.none());
 
         assertNull(findClaimLabel(panel));
+    }
+
+    /**
+     * Regression test for the alignmentX mismatch found in visual verification
+     * (2026-07-31 assertion badge redesign, task 3): {@code buildClaimBlock()} sets
+     * {@code LEFT_ALIGNMENT} (0.0) on the claim block it inserts into {@code contentPanel}, but
+     * every real sibling - the checkbox rows every filter adds via {@code addContent()}, e.g.
+     * through {@code FilterPanelFactory} - used to default to {@code JComponent}'s alignment of
+     * 0.5 (CENTER). {@code BoxLayout}'s Y_AXIS perpendicular-axis sizing
+     * ({@code SizeRequirements.getAlignedSizeRequirements}) combines every child's alignment into
+     * one shared ascent+descent span; mixing 0.0 and 0.5 inflates the computed container width far
+     * past any child's real size - independent of the actual claim/checkbox content. In the real
+     * sidebar this pushed a ~257px filter panel to ~360px preferred width, carrying every
+     * assertion badge off the visible 275px sidebar entirely, and every unit test still passed:
+     * every existing claim test here calls {@code setAssertion()} on a bare panel with no sibling
+     * content, so none of them ever built the two-sibling case where the mismatch bites.
+     *
+     * <p>This test also closes a second, previously-open gap: nothing asserted that the claim
+     * block sits at index 0 of the content panel, ahead of sibling content. A future change that
+     * appended the claim below the checkboxes would have passed every other test here while
+     * inverting the design's core reading order - the assertion, then the controls that isolate
+     * the rows it concerns.
+     *
+     * <p>The 300px bound is deliberately loose: correct layout for this bare test panel (one
+     * short checkbox row plus one claim block, no real sidebar chrome) measures well under it,
+     * while the alignmentX mismatch inflates the total independent of how small the content
+     * actually is - see the class javadoc above for the real-sidebar numbers this reproduces.
+     */
+    @Test
+    @DisplayName("Claim block leads real sibling content, and the mismatch that broke this stays fixed")
+    public void testClaimBlockPrecedesSiblingContentWithoutWidthBlowup() {
+        JPanel checkboxRow = new JPanel();
+        checkboxRow.add(new JCheckBox("Enable option", true));
+        panel.addContent(checkboxRow);
+
+        panel.setAssertion(AssertionResult.of(3, "camper", "Some claim"));
+
+        JLabel claimLabel = findClaimLabel(panel);
+        assertNotNull(claimLabel);
+        Container claimBlock = claimLabel.getParent();
+        Container contentPanel = claimBlock.getParent();
+
+        assertSame(claimBlock, contentPanel.getComponent(0),
+            "the claim must be the content panel's first child, ahead of the sibling checkbox "
+                + "row - the assertion, then the controls that isolate the rows it concerns");
+
+        int preferredWidth = panel.getPreferredSize().width;
+        assertTrue(preferredWidth < 300,
+            "panel preferred width should stay well under the 275px sidebar width, but was "
+                + preferredWidth + "px - a mixed alignmentX between the claim block and sibling "
+                + "content (see CollapsibleFilterPanel#addContent) inflates BoxLayout's computed "
+                + "width far past what the actual content needs");
     }
 
     /** Counts every claim label in the tree, to prove repeat calls do not stack blocks. */
