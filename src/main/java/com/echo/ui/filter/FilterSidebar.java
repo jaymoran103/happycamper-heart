@@ -42,6 +42,13 @@ public class FilterSidebar extends JPanel {
     public static final Color ASSERTION_PASS_COLOR = new Color(46, 125, 50);
     public static final Color ASSERTION_FAIL_COLOR = new Color(178, 34, 34);
 
+    // Badge fills. Pale tints of the same hue families as the glyph colors above. The tint is what
+    // makes status scannable — color covers the whole badge, so the sidebar reads as a column of
+    // green and red without the reader parsing digits. Continuity, not novelty:
+    // TableColors.FLAGGED_EVEN is already the app's pale-red "something is wrong" row tint.
+    public static final Color ASSERTION_PASS_BG = new Color(198, 214, 198);
+    public static final Color ASSERTION_FAIL_BG = new Color(228, 198, 198);
+
     /**
      * Creates a new FilterSidebar.
      *

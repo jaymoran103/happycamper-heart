@@ -35,7 +35,7 @@ public class CollapsibleFilterPanel extends JPanel {
     private final JPanel contentPanel;
     private JLabel titleLabel;
     private JLabel toggleLabel;
-    private JLabel assertionLabel;
+    private AssertionBadge assertionBadge;
 
     // State
     private boolean expanded = true;
@@ -98,14 +98,12 @@ public class CollapsibleFilterPanel extends JPanel {
         panel.add(titleLabel);
         panel.add(Box.createHorizontalGlue());
 
-        // Assertion indicator (prototype): sits right-aligned after the glue, hidden unless this
-        // filter carries an assertion. See docs/superpowers/specs/2026-07-31-assertion-indicators-design.md
-        assertionLabel = new JLabel();
-        assertionLabel.setName("assertionIndicator");
-        assertionLabel.setFont(assertionLabel.getFont().deriveFont(Font.BOLD, 13));
-        assertionLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));
-        assertionLabel.setVisible(false);
-        panel.add(assertionLabel);
+        // Assertion status badge (prototype): right-aligned after the glue. Added directly to the
+        // header — not wrapped — so it stays a direct child; the strut supplies the right gap.
+        // See docs/superpowers/specs/2026-07-31-assertion-indicators-design.md section 5a.
+        assertionBadge = new AssertionBadge();
+        panel.add(assertionBadge);
+        panel.add(Box.createHorizontalStrut(8));
 
         // Add mouse listeners for interactivity
         panel.addMouseListener(new MouseAdapter() {
@@ -194,25 +192,20 @@ public class CollapsibleFilterPanel extends JPanel {
     }
 
     /**
-     * Shows this filter's assertion status in the header: a green checkmark when satisfied, a red
-     * dot with the failure count when not, nothing at all when the filter is not an assertion.
+     * Shows this filter's assertion status in the header as a fixed-size tinted badge: a green
+     * checkmark when satisfied, the red failure count when not, hidden entirely when the filter is
+     * not an assertion.
      *
-     * @param assertion the assertion outcome; null or a non-applicable result hides the indicator
+     * @param assertion the assertion outcome; null or a non-applicable result hides the badge
      */
     public void setAssertion(AssertionResult assertion) {
         if (assertion == null || !assertion.applicable()) {
-            assertionLabel.setVisible(false);
-            assertionLabel.setText("");
+            assertionBadge.clear();
             headerPanel.setToolTipText(title + " - " + GENERIC_TOOLTIP);
             return;
         }
 
-        boolean satisfied = assertion.satisfied();
-        assertionLabel.setText(satisfied ? "✓" : "● " + assertion.failureCount());
-        assertionLabel.setForeground(satisfied
-            ? FilterSidebar.ASSERTION_PASS_COLOR
-            : FilterSidebar.ASSERTION_FAIL_COLOR);
-        assertionLabel.setVisible(true);
+        assertionBadge.showResult(assertion);
 
         headerPanel.setToolTipText(assertion.claim() + " — " + assertion.statusText());
     }

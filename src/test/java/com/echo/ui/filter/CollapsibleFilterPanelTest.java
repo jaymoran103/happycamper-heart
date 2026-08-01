@@ -2,6 +2,7 @@ package com.echo.ui.filter;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -128,7 +129,7 @@ public class CollapsibleFilterPanelTest {
 
         JLabel indicator = findAssertionLabel(panel);
         assertTrue(indicator.isVisible());
-        assertEquals("● 12", indicator.getText());
+        assertEquals("12", indicator.getText());
         assertEquals(FilterSidebar.ASSERTION_FAIL_COLOR, indicator.getForeground());
     }
 
@@ -165,6 +166,35 @@ public class CollapsibleFilterPanelTest {
         JPanel headerPanel = (JPanel) findAssertionLabel(panel).getParent();
         assertNotNull(headerPanel);
         assertEquals(TITLE + " - Click to expand/collapse", headerPanel.getToolTipText());
+    }
+
+    @Test
+    @DisplayName("The badge is the same size whatever it displays")
+    public void testBadgeSizeIsFixed() {
+        panel.setAssertion(AssertionResult.of(0, "camper", "Everything holds"));
+        Dimension satisfied = findAssertionLabel(panel).getPreferredSize();
+
+        panel.setAssertion(AssertionResult.of(7, "camper", "Everything holds"));
+        Dimension singleDigit = findAssertionLabel(panel).getPreferredSize();
+
+        panel.setAssertion(AssertionResult.of(12, "camper", "Everything holds"));
+        Dimension doubleDigit = findAssertionLabel(panel).getPreferredSize();
+
+        assertEquals(satisfied, singleDigit);
+        assertEquals(satisfied, doubleDigit);
+        assertEquals(new Dimension(38, 22), satisfied);
+    }
+
+    @Test
+    @DisplayName("Showing a badge does not grow the header")
+    public void testHeaderHeightUnchanged() {
+        JPanel header = (JPanel) findAssertionLabel(panel).getParent();
+        int before = header.getPreferredSize().height;
+
+        panel.setAssertion(AssertionResult.of(12, "camper", "Everything holds"));
+
+        assertEquals(before, header.getPreferredSize().height);
+        assertEquals(30, header.getPreferredSize().height);
     }
 
     /**
