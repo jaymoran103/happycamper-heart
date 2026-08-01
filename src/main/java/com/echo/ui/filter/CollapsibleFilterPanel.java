@@ -13,6 +13,7 @@ import java.awt.event.MouseMotionAdapter;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -277,9 +278,22 @@ public class CollapsibleFilterPanel extends JPanel {
             JPanel container = new JPanel(new BorderLayout());
             container.setBackground(FilterSidebar.FILTER_COLOR_EXPANDED);
             container.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
+            container.setAlignmentX(Component.LEFT_ALIGNMENT);
             container.add(component, BorderLayout.CENTER);
             contentPanel.add(container);
         } else {
+            // contentPanel's other direct child is the claim block (see buildClaimBlock), which is
+            // explicitly LEFT_ALIGNMENT. BoxLayout's Y_AXIS perpendicular-axis sizing combines every
+            // child's alignmentX via SizeRequirements.getAlignedSizeRequirements(); mixing an
+            // unaligned (default 0.5 CENTER) child with a 0.0 LEFT child inflates the computed
+            // container width far past any single child's actual width - not a fixed offset, but a
+            // blowup that scales with content width (observed: a ~257px-wide panel demanding ~360px).
+            // That's what pushed the assertion badge (this filter's very reason for having a claim in
+            // the first place) off the visible 275px sidebar. Match the claim block's alignment so
+            // every direct child of contentPanel agrees.
+            if (component instanceof JComponent jc) {
+                jc.setAlignmentX(Component.LEFT_ALIGNMENT);
+            }
             contentPanel.add(component);
         }
     }
