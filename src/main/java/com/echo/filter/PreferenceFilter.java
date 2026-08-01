@@ -6,6 +6,7 @@ import java.util.function.BiConsumer;
 
 import com.echo.domain.Camper;
 import com.echo.domain.DataConstants;
+import com.echo.domain.EnhancedRoster;
 import com.echo.domain.RosterHeader;
 import com.echo.filter.option.PreferenceFilterOption;
 import com.echo.ui.filter.CollapsibleFilterPanel;
@@ -87,6 +88,12 @@ public class PreferenceFilter implements RosterFilter {
      */
     public boolean isShowCampersWithoutUnrequestedActivities() {
         return showCampersWithoutUnrequestedActivities;
+    }
+
+    @Override
+    public AssertionResult checkAssertion(EnhancedRoster roster) {
+        return AssertionResult.forFlagColumn(roster, RosterHeader.UNREQUESTED_ACTIVITIES,
+            "camper", "Checks that no camper is assigned an activity they didn't request");
     }
 
     @Override

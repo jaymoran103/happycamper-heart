@@ -6,6 +6,7 @@ import java.util.function.BiConsumer;
 
 import com.echo.domain.Camper;
 import com.echo.domain.DataConstants;
+import com.echo.domain.EnhancedRoster;
 import com.echo.domain.RosterHeader;
 import com.echo.filter.option.SwimLessonFilterOption;
 import com.echo.ui.filter.CollapsibleFilterPanel;
@@ -65,6 +66,12 @@ public class SwimLessonFilter implements RosterFilter {
 
     public boolean isShowingFlaggedCampers() {
         return showFlaggedCampers;
+    }
+
+    @Override
+    public AssertionResult checkAssertion(EnhancedRoster roster) {
+        return AssertionResult.forFlagColumn(roster, RosterHeader.SWIMLESSON,
+            "camper", "Checks that swim lesson assignments match swim level");
     }
 
     @Override

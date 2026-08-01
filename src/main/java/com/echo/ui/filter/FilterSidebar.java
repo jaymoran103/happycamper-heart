@@ -36,6 +36,28 @@ public class FilterSidebar extends JPanel {
     public static final Color HEADER_COLOR_HIGHLIGHT = new Color(190, 210, 240); //Same as TableColors.SELECTED_EVEN. FUTURE centralize all colors somewhere?
     public static final Color FILTER_COLOR_EXPANDED = new Color(contentTone,contentTone,contentTone);
 
+    // Assertion indicator colors (prototype). Saturated members of the same hue families as the
+    // pale badge fills below, used for the glyph text so it reads clearly against the tinted fill.
+    public static final Color ASSERTION_PASS_COLOR = new Color(46, 125, 50);
+    public static final Color ASSERTION_FAIL_COLOR = new Color(178, 34, 34);
+
+    // Badge fills. Pale tints of the same hue families as the glyph colors above. The tint is what
+    // makes status scannable — color covers the whole badge, so the sidebar reads as a column of
+    // green and red without the reader parsing digits. Continuity, not novelty:
+    // TableColors.FLAGGED_EVEN is already the app's pale-red "something is wrong" row tint.
+    public static final Color ASSERTION_PASS_BG = new Color(143, 185, 143);
+    public static final Color ASSERTION_FAIL_BG = new Color(215, 146, 146);
+
+    // Near the weight of the surrounding labels — the claim box and the checkboxes' bold weight
+    // carry the hierarchy, rather than washing the claim out with low contrast.
+    public static final Color ASSERTION_CLAIM_COLOR = new Color(45, 45, 45);
+
+    // Outline of the box around the claim. A flat mid-gray rather than another etched bevel: the
+    // claim box sits inside the content panel's own EtchedBorder.LOWERED and one panel up from the
+    // header's recessed badge, so a second bevel reads as muddy nested grooves and as a second
+    // status chip. A single flat line bounds the explanation without competing with either.
+    public static final Color ASSERTION_CLAIM_BORDER_COLOR = new Color(160, 160, 160);
+
     /**
      * Creates a new FilterSidebar.
      *
@@ -67,6 +89,11 @@ public class FilterSidebar extends JPanel {
         JScrollPane scrollPane = new JScrollPane(wrapperPanel);
         scrollPane.setPreferredSize(new Dimension(PREFERRED_WIDTH, 0));
         scrollPane.setBorder(null);
+        // Backstop for CollapsibleFilterPanel.CLAIM_WRAP_WIDTH: that constant is tuned to a
+        // vertical-scrollbar width, but the app sets the system look-and-feel, so the real
+        // scrollbar is 15px on Aqua and 17px on Windows. Without this, a wrap-width tuned to one
+        // platform's scrollbar can still leave a permanent horizontal scrollbar on the other.
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         add(scrollPane, BorderLayout.CENTER);
     }
@@ -95,6 +122,10 @@ public class FilterSidebar extends JPanel {
             if (panel != null) {
                 filterPanels.put(filter.getFilterId(), panel);
                 contentPanel.add(panel);
+
+                // Assertion status is whole-roster and does not change with checkbox state, so it
+                // is computed once here, at panel-creation time.
+                panel.setAssertion(filter.checkAssertion(roster));
             }
 
         } catch (Exception e) {

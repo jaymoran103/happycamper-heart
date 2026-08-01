@@ -32,6 +32,21 @@ public interface RosterFilter {
     String getFilterName();
 
     /**
+     * Evaluates this filter's assertion over the whole roster.
+     *
+     * Filters that carry a pass/fail meaning override this; the rest inherit the no-op and render
+     * no indicator. Always evaluated over every camper, independent of this filter's own checkbox
+     * state. Implementations must not mutate the roster, and must return
+     * {@link AssertionResult#none()} rather than throwing when their backing column is absent.
+     *
+     * @param roster The roster to evaluate
+     * @return the assertion outcome, or {@link AssertionResult#none()} if this filter is not an assertion
+     */
+    default AssertionResult checkAssertion(EnhancedRoster roster) {
+        return AssertionResult.none();
+    }
+
+    /**
      * Creates a UI panel for this filter.
      * Default implementation, delegates to the no-argument createFilterPanel method.
      * Implementations that expect EnhancedRoster as an argument should set it as a field themselves

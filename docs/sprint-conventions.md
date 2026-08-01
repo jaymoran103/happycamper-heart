@@ -64,3 +64,31 @@ entry names what bent, where, and why it's safe.
   filter is always-on.
 - **Why safe:** it has no feature dependency — it matches plain camper fields and an empty term passes
   everyone, so an always-present instance is inert until used.
+
+## E1 — filters carry a non-filtering responsibility (assertion status)
+- **Where:** `RosterFilter.checkAssertion` (defaulted) + `AssertionResult` + overrides on
+  `PreferenceFilter`, `SwimLevelFilter`, `SwimLessonFilter`, `DuplicateActivityFilter`,
+  `SortedProgramFilter`; rendered by `AssertionBadge`, `CollapsibleFilterPanel.setAssertion`, and
+  wired in `FilterSidebar.addFilterPanel`.
+- **Bend:** relaxes "a filter is purely a visibility predicate". A filter now also reports whether
+  the whole roster satisfies a related assertion, which its own checkbox state does not affect.
+- **Three categories:** column-based (one shared `AssertionResult.forFlagColumn` helper — preference,
+  aquatic conflicts, swim lessons, duplicate activities), custom (Programs, keyed on the existing
+  `getProgramsByRoundCount` "Mixed" bucket), and none (Assignment, Search, Activity Selector, which
+  inherit the defaulted no-op and are unmodified).
+- **Why safe:** read-only over the roster and entirely additive — `apply()` is untouched, so what
+  each filter filters is unchanged. Assertion scope is always the whole roster, never the filtered
+  rows, so a filter cannot turn its own indicator green by hiding its failures. Filters without a
+  pass/fail meaning render exactly as before.
+- **Note:** `AssignmentFilter` deliberately has no assertion — a round count on its own is neither
+  valid nor invalid, and round counts legitimately vary by program. Any round-count inconsistency is
+  reported by the Programs assertion. Configurable expected round counts would give Assignment a real
+  per-camper assertion; that is future work.
+- **Redesign (2026-07-31, same branch):** status now renders as `AssertionBadge`, a fixed-size 38×22
+  tinted badge — green `✓` when satisfied, the red failure count when not, identical box in every
+  state — replacing the earlier checkmark/dot glyph. The assertion's plain-English claim now leads
+  the filter's expandable content region, above a separator, above the checkboxes, so the panel reads
+  top-to-bottom as "the assertion, then the controls that isolate the rows it concerns". Headers stay
+  30px regardless, so a collapsed filter still costs only 30px and still reports status. This is a
+  further bend of the same convention above, not a new one: the expandable region now carries
+  assertion *content* (the claim), not only filter controls.
