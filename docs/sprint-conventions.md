@@ -84,3 +84,11 @@ entry names what bent, where, and why it's safe.
   valid nor invalid, and round counts legitimately vary by program. Any round-count inconsistency is
   reported by the Programs assertion. Configurable expected round counts would give Assignment a real
   per-camper assertion; that is future work.
+- **Redesign (2026-07-31, same branch):** status now renders as `AssertionBadge`, a fixed-size 38×22
+  tinted badge — green `✓` when satisfied, the red failure count when not, identical box in every
+  state — replacing the earlier checkmark/dot glyph. The assertion's plain-English claim now leads
+  the filter's expandable content region, above a separator, above the checkboxes, so the panel reads
+  top-to-bottom as "the assertion, then the controls that isolate the rows it concerns". Headers stay
+  30px regardless, so a collapsed filter still costs only 30px and still reports status. This is a
+  further bend of the same convention above, not a new one: the expandable region now carries
+  assertion *content* (the claim), not only filter controls.
