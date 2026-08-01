@@ -16,6 +16,7 @@ import com.echo.service.ImportSettings;
 import com.echo.service.RosterService;
 import com.echo.ui.help.PageContentBuilder.HelpPage;
 import com.echo.ui.selector.CheckBoxSelector;
+import com.echo.ui.selector.FileDropArbiter;
 import com.echo.ui.selector.FileSelector;
 import com.echo.ui.selector.InputSelector;
 import com.echo.ui.selector.FileSelector.SelectionMode;
@@ -54,8 +55,30 @@ public class ImportDialog extends InputsDialog {
         activityFileSelector = (FileSelector) selectors[1];
         featureSelector = (CheckBoxSelector) selectors[2];
 
+        installDragFeedback();
+
         //Trigger initial validation
         updateContinueButton();
+    }
+
+    /**
+     * Puts both file pickers under one arbiter so their drag feedback works as a pair.
+     *
+     * The point is to answer "which of these takes a file?" before the user has to guess: as soon as
+     * a drag enters the dialog both pickers show a dashed frame, and only the one under the pointer
+     * darkens. That needs dialog-level state, because a picker alone only hears about drags already
+     * on top of it.
+     *
+     * Runs after super(), so every selector's panel has been built and the sentinel can walk a
+     * complete component tree.
+     */
+    private void installDragFeedback() {
+        FileDropArbiter arbiter = new FileDropArbiter();
+        camperFileSelector.setDropArbiter(arbiter);
+        activityFileSelector.setDropArbiter(arbiter);
+
+        // Claims the gaps between the pickers, so crossing from one to the other stays armed
+        arbiter.installSentinel(getMainPanel());
     }
 
     /**
