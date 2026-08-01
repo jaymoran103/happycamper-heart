@@ -1,8 +1,8 @@
 {
-  "label": "v2.4",
+  "label": "v2.5",
   "items": [
-    "Save column layouts as named presets",
-    "Set a default view that loads automatically",
-    "Presets last between sessions and updates"
+    "Assertions - pass/fail checks for key schedule needs",
+    "Colored assertion badges show which filters need attention.",
+    "Drag and drop file selection"
   ]
 }
