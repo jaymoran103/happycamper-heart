@@ -213,8 +213,11 @@ public class FilterSidebarTest {
         int usableWidth = FilterSidebar.PREFERRED_WIDTH - scrollBarAllowance;
 
         // Give PreferenceFilter's assertion a backing column so it renders its claim block too -
-        // "Checks that no camper is assigned an activity they didn't request" is the longest claim
-        // of the five assertion filters, so it's the tightest fit against CLAIM_WRAP_WIDTH.
+        // together with SortedProgramFilter this exercises two different sibling-content shapes
+        // (a plain checkbox list vs. the program-list panel's extra content) against the same
+        // CLAIM_WRAP_WIDTH budget. All five assertion panels measure the same 250px regardless of
+        // claim length - the box's width is driven by CLAIM_WRAP_WIDTH, not by the claim, so a
+        // longer claim wraps another line rather than widening the panel.
         roster.addHeader(RosterHeader.UNREQUESTED_ACTIVITIES.standardName);
 
         RosterFilter programFilter = new SortedProgramFilter();

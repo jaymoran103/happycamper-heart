@@ -1,7 +1,7 @@
 # Filters as Assertion Indicators — Prototype Design
 
 **Date:** 2026-07-31
-**Status:** Implemented, on branch `assertion-indicators` (13 local commits, unpushed)
+**Status:** Implemented, on branch `assertion-indicators` (20 local commits, unpushed)
 **Scope:** Demo prototype. Communicates the objective; not the eventual refactor.
 
 ## Objective
@@ -36,6 +36,7 @@ claim block is hidden — but it is a supporting detail now, not the sole vehicl
 |---|---|---|
 | Filters with no pass/fail meaning (Assignment, Activity Selector) | No indicator at all — headers unchanged | Honest: reads as "not an assertion". Keeps the green/red signal meaningful, and visibly shows the sidebar is mixed today. Search (`TextSearchFilter`) is not part of this decision: `createFilterPanel()` returns `null`, so it has no sidebar header to put an indicator on in the first place. |
 | Evaluation scope | Always the whole roster, regardless of checkbox state | Stable and honest. Under a visible-rows scope, unchecking "show incompatible" would turn Aquatic Conflicts green while conflicts still exist — confusing on stage. |
+| Default panel state | Filter panels build collapsed | A collapsed panel is 30px and still shows its status badge, so the default sidebar is a compact, scannable stack of title-plus-status rows — the direction this feature is heading. The explanation is one click away rather than always consuming vertical space. |
 | Visual treatment | Right-aligned fixed-size tinted badge: green `✓` when satisfied, red count when not. The claim itself leads the expandable region. | Leaves the existing left side (toggle + bold title) untouched and the header at 30px. The tinted badge scans as a column of green/red down the sidebar without the reader parsing digits; the count conveys severity; the in-panel claim carries meaning without hiding it behind hover. See §5 for the four rejected placements. |
 | Assignment Filter | **No assertion.** | A round count on its own is neither valid nor invalid — round counts legitimately vary by program, and there is no configured expectation to check a camper against. Any round-count *inconsistency* is already reported by the Programs assertion. Configurable expected round counts are future work; when they exist, Assignment gains a real per-camper assertion. |
 
@@ -144,8 +145,8 @@ Status and meaning are shown in two places, chosen so the header never grows:
 
 This split is deliberate. It reads top-to-bottom as *the assertion, then its controls*, which is the
 structure the eventual refactor is heading for (a filter becoming the view/control component of its
-assertion) — reached here without restructuring the sidebar. It also means a collapsed panel costs
-30px and still reports status, so collapsing everything yields a compact stack of title-plus-status
+assertion) — reached here without restructuring the sidebar. It also means a collapsed panel — the state every panel now builds in by default — costs 30px and
+still reports status, so the sidebar's out-of-the-box state is a compact stack of title-plus-status
 rows: a preview of the eventual assertion-sequence sidebar, for free.
 
 #### 5a. `AssertionBadge` — new class, `com.echo.ui.filter`
@@ -300,7 +301,10 @@ described in §5 needs:
 - an applicable assertion inserts a claim label above the checkboxes; a non-applicable one inserts
   nothing;
 - calling `setAssertion` twice does not stack duplicate claim blocks;
-- the header's preferred height is unchanged at 30px whether or not a badge is present.
+- the header's preferred height is unchanged at 30px whether or not a badge is present;
+- a freshly built panel starts collapsed, with the `expanded` field, the toggle glyph, and content
+  visibility all pinned together (`testPanelStartsCollapsed`) — the point being that these three
+  cannot silently drift apart.
 
 All of these are headless-safe — `JPanel`/`JLabel`/`JScrollPane` only, never a `JFrame`.
 
@@ -313,8 +317,8 @@ outright rather than throwing — so the offscreen render is the automatable pat
 
 - reordering, renaming, or restructuring the sidebar
 - renaming filters, or retitling them as `Programs Filter → Checks that the rounds assigned are
-  consistent…`. The
-  claim now appears inside the panel (§5b), but the filter's own name is untouched.
+  consistent…`. The claim now appears inside the panel (§5b), but the filter's own name is
+  untouched.
 - a roll-up summary anywhere in the window
 - any change to what the filters actually filter
 - any recompute of assertion status in response to filter interaction
