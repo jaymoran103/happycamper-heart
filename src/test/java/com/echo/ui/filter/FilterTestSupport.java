@@ -33,4 +33,25 @@ final class FilterTestSupport {
         }
         return null;
     }
+
+    /**
+     * Finds the in-panel assertion claim label by its Swing component name.
+     *
+     * @param container the component tree to search
+     * @return the claim label, or null if the tree has none
+     */
+    static JLabel findClaimLabel(Container container) {
+        for (Component child : container.getComponents()) {
+            if (child instanceof JLabel label && "assertionClaim".equals(label.getName())) {
+                return label;
+            }
+            if (child instanceof Container nested) {
+                JLabel found = findClaimLabel(nested);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
+    }
 }

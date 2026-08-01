@@ -49,6 +49,10 @@ public class FilterSidebar extends JPanel {
     public static final Color ASSERTION_PASS_BG = new Color(198, 214, 198);
     public static final Color ASSERTION_FAIL_BG = new Color(228, 198, 198);
 
+    // Near the weight of the surrounding labels — the separator and the checkboxes' bold weight
+    // carry the hierarchy, rather than washing the claim out with low contrast.
+    public static final Color ASSERTION_CLAIM_COLOR = new Color(45, 45, 45);
+
     /**
      * Creates a new FilterSidebar.
      *

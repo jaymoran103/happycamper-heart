@@ -15,6 +15,8 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 
@@ -30,12 +32,21 @@ public class CollapsibleFilterPanel extends JPanel {
     private static final int HEADER_HEIGHT = 30;
     private static final int CONTENT_PADDING = 2;
 
+    /**
+     * Wrap width for the claim text. Swing's HTML renderer ignores CSS width on body/div — only a
+     * table element's width attribute actually wraps — so this is passed to <table width=...>.
+     */
+    private static final int CLAIM_WRAP_WIDTH = 245;
+
     // UI components
     private final JPanel headerPanel;
     private final JPanel contentPanel;
     private JLabel titleLabel;
     private JLabel toggleLabel;
     private AssertionBadge assertionBadge;
+
+    /** The inserted claim block, or null when this panel shows no assertion. */
+    private JPanel claimBlock;
 
     // State
     private boolean expanded = true;
@@ -192,13 +203,20 @@ public class CollapsibleFilterPanel extends JPanel {
     }
 
     /**
-     * Shows this filter's assertion status in the header as a fixed-size tinted badge: a green
+     * Shows this filter's assertion status in the header as a fixed-size tinted badge — a green
      * checkmark when satisfied, the red failure count when not, hidden entirely when the filter is
-     * not an assertion.
+     * not an assertion — and places the assertion's plain-English claim at the top of the
+     * expandable content area, above a separator, above the checkboxes.
      *
-     * @param assertion the assertion outcome; null or a non-applicable result hides the badge
+     * @param assertion the assertion outcome; null or a non-applicable result hides the badge and
+     *                  removes the claim block
      */
     public void setAssertion(AssertionResult assertion) {
+        if (claimBlock != null) {
+            contentPanel.remove(claimBlock);
+            claimBlock = null;
+        }
+
         if (assertion == null || !assertion.applicable()) {
             assertionBadge.clear();
             headerPanel.setToolTipText(title + " - " + GENERIC_TOOLTIP);
@@ -208,6 +226,42 @@ public class CollapsibleFilterPanel extends JPanel {
         assertionBadge.showResult(assertion);
 
         headerPanel.setToolTipText(assertion.claim() + " — " + assertion.statusText());
+
+        claimBlock = buildClaimBlock(assertion.claim());
+        contentPanel.add(claimBlock, 0);
+    }
+
+    /**
+     * Builds the claim block: the assertion's plain-English claim above a separator, sized to sit
+     * at the top of the content panel and read as "the assertion, then the controls that isolate
+     * the rows it concerns".
+     *
+     * @param claim the plain-English assertion text
+     * @return the block, ready to insert at index 0 of the content panel
+     */
+    private JPanel buildClaimBlock(String claim) {
+        JPanel block = new JPanel();
+        block.setLayout(new BoxLayout(block, BoxLayout.Y_AXIS));
+        block.setBackground(FilterSidebar.FILTER_COLOR_EXPANDED);
+        block.setBorder(BorderFactory.createEmptyBorder(4, 2, 4, 2));
+        block.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel claimLabel = new JLabel(
+            "<html><table width=" + CLAIM_WRAP_WIDTH + "><tr><td>" + claim + "</td></tr></table></html>");
+        claimLabel.setName("assertionClaim");
+        claimLabel.setFont(claimLabel.getFont().deriveFont(Font.PLAIN, 11f));
+        claimLabel.setForeground(FilterSidebar.ASSERTION_CLAIM_COLOR);
+        claimLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+        // Without a max-height cap a JSeparator stretches to fill the BoxLayout's spare vertical space.
+        separator.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        separator.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        block.add(claimLabel);
+        block.add(Box.createVerticalStrut(4));
+        block.add(separator);
+        return block;
     }
 
     /**

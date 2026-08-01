@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import com.echo.filter.AssertionResult;
 
 import static com.echo.ui.filter.FilterTestSupport.findAssertionLabel;
+import static com.echo.ui.filter.FilterTestSupport.findClaimLabel;
 
 /**
  * Tests for the CollapsibleFilterPanel class.
@@ -188,13 +190,75 @@ public class CollapsibleFilterPanelTest {
     @Test
     @DisplayName("Showing a badge does not grow the header")
     public void testHeaderHeightUnchanged() {
-        JPanel header = (JPanel) findAssertionLabel(panel).getParent();
+        JLabel indicator = findAssertionLabel(panel);
+        JPanel header = (JPanel) indicator.getParent();
         int before = header.getPreferredSize().height;
 
         panel.setAssertion(AssertionResult.of(12, "camper", "Everything holds"));
 
         assertEquals(before, header.getPreferredSize().height);
         assertEquals(30, header.getPreferredSize().height);
+        // The vacuous version of this test only checked the header's own preferred size, which is
+        // pinned unconditionally in createHeaderPanel and can't reflect what the badge does. The
+        // real constraint is that the badge fits inside the header, not merely that the constant
+        // wasn't edited.
+        assertTrue(indicator.getPreferredSize().height < header.getPreferredSize().height);
+    }
+
+    @Test
+    @DisplayName("An applicable assertion puts its claim in the expandable region")
+    public void testClaimAppearsInContent() {
+        panel.setAssertion(AssertionResult.of(3, "camper", "Rounds assigned are consistent"));
+
+        JLabel claim = findClaimLabel(panel);
+        assertNotNull(claim);
+        assertTrue(claim.getText().contains("Rounds assigned are consistent"));
+    }
+
+    @Test
+    @DisplayName("A non-applicable assertion adds no claim block")
+    public void testNoClaimWhenNotApplicable() {
+        panel.setAssertion(AssertionResult.none());
+
+        assertNull(findClaimLabel(panel));
+    }
+
+    @Test
+    @DisplayName("Re-setting an assertion replaces the claim rather than stacking duplicates")
+    public void testClaimIsNotDuplicated() {
+        panel.setAssertion(AssertionResult.of(3, "camper", "First claim"));
+        panel.setAssertion(AssertionResult.of(4, "camper", "Second claim"));
+
+        JLabel claim = findClaimLabel(panel);
+        assertNotNull(claim);
+        assertTrue(claim.getText().contains("Second claim"));
+        assertFalse(claim.getText().contains("First claim"));
+        assertEquals(1, countClaimLabels(panel));
+    }
+
+    @Test
+    @DisplayName("Going from applicable to none removes the claim block")
+    public void testClaimRemovedWhenAssertionCleared() {
+        panel.setAssertion(AssertionResult.of(3, "camper", "Some claim"));
+        assertNotNull(findClaimLabel(panel));
+
+        panel.setAssertion(AssertionResult.none());
+
+        assertNull(findClaimLabel(panel));
+    }
+
+    /** Counts every claim label in the tree, to prove repeat calls do not stack blocks. */
+    private int countClaimLabels(java.awt.Container container) {
+        int count = 0;
+        for (java.awt.Component child : container.getComponents()) {
+            if (child instanceof JLabel label && "assertionClaim".equals(label.getName())) {
+                count++;
+            }
+            if (child instanceof java.awt.Container nested) {
+                count += countClaimLabels(nested);
+            }
+        }
+        return count;
     }
 
     /**
