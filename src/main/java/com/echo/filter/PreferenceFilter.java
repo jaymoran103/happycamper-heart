@@ -93,7 +93,7 @@ public class PreferenceFilter implements RosterFilter {
     @Override
     public AssertionResult checkAssertion(EnhancedRoster roster) {
         return AssertionResult.forFlagColumn(roster, RosterHeader.UNREQUESTED_ACTIVITIES,
-            "camper", "No camper is assigned an activity they didn't request");
+            "camper", "Checks that no camper is assigned an activity they didn't request");
     }
 
     @Override

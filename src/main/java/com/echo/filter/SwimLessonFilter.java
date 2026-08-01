@@ -71,7 +71,7 @@ public class SwimLessonFilter implements RosterFilter {
     @Override
     public AssertionResult checkAssertion(EnhancedRoster roster) {
         return AssertionResult.forFlagColumn(roster, RosterHeader.SWIMLESSON,
-            "camper", "Swim lesson assignments match swim level");
+            "camper", "Checks that swim lesson assignments match swim level");
     }
 
     @Override

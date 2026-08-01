@@ -93,7 +93,7 @@ public class SwimLevelFilter implements RosterFilter {
     @Override
     public AssertionResult checkAssertion(EnhancedRoster roster) {
         return AssertionResult.forFlagColumn(roster, RosterHeader.SWIMCONFLICTS,
-            "camper", "Campers are eligible for their water activities");
+            "camper", "Checks that campers are eligible for their water activities");
     }
 
     @Override

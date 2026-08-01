@@ -136,7 +136,7 @@ public class SortedProgramFilter implements RosterFilter {
         int failures = (mixedPrograms == null) ? 0 : mixedPrograms.size();
 
         return AssertionResult.of(failures, "program",
-            "Rounds assigned are consistent for each program");
+            "Checks that the rounds assigned are consistent for each program");
     }
 
 }

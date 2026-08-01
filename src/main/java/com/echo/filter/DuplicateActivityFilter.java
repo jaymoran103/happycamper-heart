@@ -45,7 +45,7 @@ public class DuplicateActivityFilter implements RosterFilter {
     @Override
     public AssertionResult checkAssertion(EnhancedRoster roster) {
         return AssertionResult.forFlagColumn(roster, RosterHeader.DUPLICATE_ACTIVITY,
-            "camper", "No camper is assigned the same activity twice");
+            "camper", "Checks that no camper is assigned the same activity twice");
     }
 
     @Override

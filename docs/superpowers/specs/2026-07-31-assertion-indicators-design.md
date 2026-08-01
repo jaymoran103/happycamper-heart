@@ -19,8 +19,8 @@ Later, assertions replace the visual and functional roles of filters:
 - assertions are the collapsible/expandable rows
 - a filter is redefined as the view/control component of its assertion — the checkboxes inside the
   expanded region isolate the rows relevant to that assertion
-- names gain subheadings: `Programs Filter → Rounds assigned are consistent for each program`,
-  `Aquatic Conflicts → Campers are eligible for their water activities`
+- names gain subheadings: `Programs Filter → Checks that the rounds assigned are consistent for each
+  program`, `Aquatic Conflicts → Checks that campers are eligible for their water activities`
 
 **This prototype does not fully realize that.** The sidebar is still a list of filters, not a
 visualization of an assertion sequence, and filters are not renamed or given subheadings. But it is
@@ -84,7 +84,8 @@ public record AssertionResult(boolean applicable, int failureCount, String unit,
 - `unit` is the noun being counted (`"camper"` / `"program"`), used for tooltip pluralization. The
   unit is deliberately not uniform across filters: the Programs assertion counts programs, the rest
   count campers.
-- `claim` is the plain-English assertion, e.g. `"Rounds assigned are consistent for each program"`.
+- `claim` is the plain-English assertion, phrased as the check being performed, e.g.
+  `"Checks that the rounds assigned are consistent for each program"`.
 
 ### 2. `AssertionResult.forFlagColumn` — new static factory, `com.echo.filter`
 
@@ -116,11 +117,15 @@ modified — category 3.
 
 | Filter | Assertion | Column / source | Unit |
 |---|---|---|---|
-| `PreferenceFilter` | No camper is assigned an activity they didn't request | `UNREQUESTED_ACTIVITIES` empty | camper |
-| `SwimLevelFilter` | Campers are eligible for their water activities | `SWIMCONFLICTS` empty | camper |
-| `SwimLessonFilter` | Swim lesson assignments match swim level | `SWIMLESSON` empty | camper |
-| `DuplicateActivityFilter` | No camper is assigned the same activity twice | `DUPLICATE_ACTIVITY` empty | camper |
-| `SortedProgramFilter` | Rounds assigned are consistent for each program | `ProgramFeature.getProgramsByRoundCount(roster).get(-1)` is empty | program |
+| `PreferenceFilter` | Checks that no camper is assigned an activity they didn't request | `UNREQUESTED_ACTIVITIES` empty | camper |
+| `SwimLevelFilter` | Checks that campers are eligible for their water activities | `SWIMCONFLICTS` empty | camper |
+| `SwimLessonFilter` | Checks that swim lesson assignments match swim level | `SWIMLESSON` empty | camper |
+| `DuplicateActivityFilter` | Checks that no camper is assigned the same activity twice | `DUPLICATE_ACTIVITY` empty | camper |
+| `SortedProgramFilter` | Checks that the rounds assigned are consistent for each program | `ProgramFeature.getProgramsByRoundCount(roster).get(-1)` is empty | program |
+
+Each claim is worded as a description of the check being performed ("Checks that …") rather than a
+bare statement of the target condition, so the line explains itself to a reader who has no reason
+yet to trust the assertion. This is demo-facing copy — keep the wording verbatim when porting.
 
 The first four delegate to `AssertionResult.forFlagColumn` (category 1).
 
@@ -286,7 +291,8 @@ outright rather than throwing — so the offscreen render is the automatable pat
 ## Explicitly out of scope
 
 - reordering, renaming, or restructuring the sidebar
-- renaming filters, or retitling them as `Programs Filter → Rounds assigned are consistent…`. The
+- renaming filters, or retitling them as `Programs Filter → Checks that the rounds assigned are
+  consistent…`. The
   claim now appears inside the panel (§5b), but the filter's own name is untouched.
 - a roll-up summary anywhere in the window
 - any change to what the filters actually filter
