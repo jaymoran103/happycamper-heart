@@ -41,8 +41,8 @@ jobs:
       - name: Smoke-test the packaged jar
         run: |
           MAIN_JAR=$(ls target/happy-camper-*.jar | head -1)
-          xvfb-run -a timeout 15 java -jar "$MAIN_JAR" 1
-          code=$?
+          code=0
+          xvfb-run -a timeout 15 java -jar "$MAIN_JAR" 1 || code=$?
           if [ "$code" -ne 0 ] && [ "$code" -ne 124 ]; then
             echo "Jar exited with unexpected code $code (expected 0 or 124-timeout)"
             exit 1

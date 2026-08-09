@@ -90,8 +90,10 @@ class ExportFileValidatorTest {
     @Test
     @DisplayName("validateExportFile should return invalid result for file with invalid characters in name")
     void testValidateExportFile_InvalidFileName() throws IOException {
-        // Create a file with invalid characters in the name
-        File file = tempDir.resolve("test?.csv").toFile();
+        // Build the File directly rather than via Path.resolve(): NIO's path parser
+        // rejects "?" on Windows before the validator under test ever runs, whereas
+        // java.io.File is lenient and defers to validateFileName's own character check.
+        File file = new File(tempDir.toFile(), "test?.csv");
 
         ValidationResult<File> result = ExportFileValidator.validateExportFile(file, "csv");
 
