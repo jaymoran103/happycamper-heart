@@ -3,6 +3,7 @@ package com.echo.ui.dialog;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GraphicsEnvironment;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -16,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -202,6 +204,8 @@ public class DialogUtilsTest {
     @Test
     @DisplayName("Test setDialogLocation method")
     public void testSetDialogLocation() {
+        assumeFalse(GraphicsEnvironment.isHeadless());
+
         // Create parent and child windows
         JFrame parentFrame = new JFrame();
         JDialog childDialog = new JDialog();

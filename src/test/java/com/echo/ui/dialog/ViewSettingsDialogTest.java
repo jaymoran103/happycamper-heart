@@ -2,6 +2,7 @@ package com.echo.ui.dialog;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.GraphicsEnvironment;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -10,6 +11,7 @@ import javax.swing.JRadioButton;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +31,8 @@ public class ViewSettingsDialogTest {
 
     @BeforeEach
     public void setUp() {
+        assumeFalse(GraphicsEnvironment.isHeadless());
+
         // Create parent frame
         parentFrame = new JFrame("Test Frame");
         parentFrame.setSize(800, 600);

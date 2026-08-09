@@ -10,13 +10,13 @@ HappyCamper — Java Swing desktop app for camp roster validation. This repo is 
 
 ## Build & test
 
-- `mvn -B test` — full suite (~373 tests, a few seconds)
+- `mvn -B test` — full suite (530 tests, a few seconds)
 - `mvn -B package -DskipTests` — jar + runtime deps in `target/lib`
 - Installers are built ONLY by CI (`.github/workflows/release.yml`); jpackage can't cross-compile
 - Java: source level 22 (pom), CI builds/bundles Temurin 25
 
 ### Test caveats
-- `com.echo.ui.dialog.*` tests open real dialogs → `HeadlessException` without a display. CI runs the full suite under xvfb (Linux) and a headless-safe subset (`*SelectorTest,*FilterTest,*FeatureTest,*ServiceTest,*RosterTest`) on Windows to catch platform bugs like path-separator issues.
+- `com.echo.ui.dialog.*` tests open real dialogs → `HeadlessException` without a display. Four classes (`DialogUtilsTest`, `ExportDialogTest`, `ViewSettingsDialogTest`, `ImportDialogUnitTest`) guard themselves with `assumeFalse(GraphicsEnvironment.isHeadless())` and report as skipped rather than crashing the surefire fork. CI runs the full suite on both Linux (under xvfb, so these run for real) and Windows (headless, so these skip) — both catch the same platform bugs (e.g. path-separator issues) since the suite is no longer filtered by name.
 - Test fixtures live in `src/test/resources/testRosters/`; `automation/TestFiles.java` + `TestPreset.java` enumerate them.
 
 ## Architecture pointers
