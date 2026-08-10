@@ -56,8 +56,11 @@ public class ImportUtils {
      * @throws IOException
      */
     private static CSVParser createSafeParser(File file) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        StringReader cleanedDataReader = new StringReader(ContentCleaner.cleanFileContent(reader));
+        String cleanedContent;
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            cleanedContent = ContentCleaner.cleanFileContent(reader);
+        }
+        StringReader cleanedDataReader = new StringReader(cleanedContent);
         CSVFormat format = CSVFormat.DEFAULT.builder().setHeader().build();
         CSVParser parser = CSVParser.parse(cleanedDataReader,format);
         return parser;

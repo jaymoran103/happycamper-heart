@@ -2,6 +2,7 @@ package com.echo.ui.dialog;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.GraphicsEnvironment;
 import java.io.File;
 
 import javax.swing.JFrame;
@@ -9,6 +10,7 @@ import javax.swing.JPanel;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,6 +43,8 @@ public class ExportDialogTest {
 
     @BeforeEach
     public void setUp() {
+        assumeFalse(GraphicsEnvironment.isHeadless());
+
         // Create services
         ImportService importService = new ImportService();
         ExportService exportService = new ExportService();

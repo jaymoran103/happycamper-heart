@@ -2,12 +2,17 @@ name: Build installers
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+    tags: ['v*']
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # Swing UI tests need a display; CI runners are headless, so run the suite
@@ -15,6 +20,7 @@ jobs:
   test:
     name: Run tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -29,11 +35,25 @@ jobs:
           command -v xvfb-run >/dev/null || (sudo apt-get update && sudo apt-get install -y xvfb)
           xvfb-run -a mvn -B test
 
-  # Catch Windows-only platform bugs (path separators etc.) without a
-  # display: run the component tests that don't open real windows.
+      - name: Build jar
+        run: mvn -B package -DskipTests
+
+      - name: Smoke-test the packaged jar
+        run: |
+          MAIN_JAR=$(ls target/happy-camper-*.jar | head -1)
+          code=0
+          xvfb-run -a timeout 15 java -jar "$MAIN_JAR" 1 || code=$?
+          if [ "$code" -ne 0 ] && [ "$code" -ne 124 ]; then
+            echo "Jar exited with unexpected code $code (expected 0 or 124-timeout)"
+            exit 1
+          fi
+
+  # Catch Windows-only platform bugs (path separators etc.); the dialog
+  # tests skip themselves headlessly via assumeFalse(isHeadless()).
   test-windows:
     name: Run tests (windows)
     runs-on: windows-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -43,14 +63,16 @@ jobs:
           java-version: '25'
           cache: maven
 
-      - name: Run headless-safe tests
+      - name: Run tests
         shell: bash
-        run: mvn -B test "-Dtest=*SelectorTest,*FilterTest,*FeatureTest,*ServiceTest,*RosterTest"
+        run: mvn -B test
 
   # Zip the sample rosters so the release carries a stable
   # /releases/latest/download/HappyCamper-demo-data.zip link
   demo-data:
     name: Package demo data
+    needs: [test, test-windows]
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,6 +97,7 @@ jobs:
   package:
     name: Package (${{ matrix.label }})
     needs: [test, test-windows]
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
