@@ -6,9 +6,11 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -19,8 +21,12 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
+import com.echo.feedback.FeedbackReport;
+import com.echo.feedback.WarningSummarizer;
 import com.echo.logging.RosterWarning;
+import com.echo.logging.WarningManager;
 import com.echo.ui.component.TableColors;
+import com.echo.ui.elements.HoverButton;
 
 /**
  * WarningPanel displays a set of RosterWarnings corresponding to a single WarningType, using a JTable to display context for each warning instance
@@ -91,8 +97,34 @@ public class WarningDialogPanel extends JPanel{
         secondaryExplanationLabel.setBorder(BorderFactory.createEmptyBorder(borderWidth,borderWidth,borderWidth,borderWidth));
         add(secondaryExplanationLabel);
 
+        //Contextual feedback entry point - catches the user at the moment they notice a quirk
+        JButton feedbackButton = new HoverButton("Something look wrong? Tell Jay →");
+        feedbackButton.setAlignmentX(LEFT_ALIGNMENT);
+        feedbackButton.setBorderPainted(false);
+        feedbackButton.setContentAreaFilled(false);
+        feedbackButton.setForeground(DialogConstants.TEXT_COLOR_NORMAL);
+        feedbackButton.addActionListener(a -> openFeedback());
+        add(feedbackButton);
+
         //Conditional checkbox, allowing user to make decision for orphan rows
         add(createCheckboxPanel(borderWidth));
+    }
+
+    /**
+     * Opens the feedback dialog covering every warning in the log, not just this panel's type.
+     * The user clicked because something looked wrong; the neighbouring cards are context.
+     */
+    private void openFeedback() {
+        WarningManager scratch = new WarningManager();
+        parent.getWarningLog().values().forEach(list -> list.forEach(scratch::logWarning));
+
+        FeedbackReport report = new FeedbackReport(
+                FeedbackReport.Kind.DATA_QUIRK,
+                FeedbackReport.environmentString(),
+                List.of(),
+                WarningSummarizer.summarize(scratch),
+                "");
+        new FeedbackDialog(parent, report).showDialog();
     }
 
     /**
