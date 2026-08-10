@@ -56,6 +56,10 @@ import com.echo.ui.component.RosterTable;
 import com.echo.ui.component.ViewStatusBar;
 import com.echo.ui.dialog.ColumnVisibilityDialog;
 import com.echo.ui.dialog.ExportDialog;
+import com.echo.feedback.FeedbackReport;
+import com.echo.feedback.WarningSummarizer;
+import com.echo.logging.WarningManager;
+import com.echo.ui.dialog.FeedbackDialog;
 import com.echo.ui.dialog.HelpDialog;
 import com.echo.ui.dialog.ImportDialog;
 import com.echo.ui.dialog.ReportDialog;
@@ -226,6 +230,9 @@ public class MainWindow extends JFrame {
         JButton tutorialButton = new HoverButton("Help");
         tutorialButton.addActionListener(this::handleTutorial);
 
+        JButton feedbackButton = new HoverButton("Feedback");
+        feedbackButton.addActionListener(this::handleFeedback);
+
         // Roster-dependent controls stay disabled until a roster is displayed (see setRoster).
         // Import and Help remain enabled at all times.
         exportButton.setEnabled(false);
@@ -239,6 +246,8 @@ public class MainWindow extends JFrame {
         buttonPanel.add(columnVisibilityButton);
         buttonPanel.add(activityReportButton);
         buttonPanel.add(tutorialButton);
+        // Deliberately not in the roster-dependent disable list above.
+        buttonPanel.add(feedbackButton);
 
         // Buttons on the left, universal search on the right (B1).
         // paintChildren draws the divider after both children so it stays visible even when
@@ -703,5 +712,20 @@ public class MainWindow extends JFrame {
         HelpPage helpPage = HelpPage.WELCOME;
         HelpDialog helpDialog = new HelpDialog(this, helpPage);
         helpDialog.showDialog();
+    }
+
+    /**
+     * Opens the feedback dialog. Available at all times: a user whose roster will not import is
+     * the user most in need of a way to say so.
+     */
+    private void handleFeedback(ActionEvent event) {
+        WarningManager warnings = rosterService.getWarningManager();
+        FeedbackReport report = new FeedbackReport(
+                FeedbackReport.Kind.GENERAL,
+                FeedbackReport.environmentString(),
+                currentRoster == null ? List.of() : List.copyOf(currentRoster.getOrderedHeaders()),
+                warnings == null ? List.of() : WarningSummarizer.summarize(warnings),
+                "");
+        new FeedbackDialog(this, report).showDialog();
     }
 }
