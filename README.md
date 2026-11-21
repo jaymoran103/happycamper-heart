@@ -1,6 +1,6 @@
 # HappyCamper
 
-> **Camp staff:** head to the [downloads page](https://jaymoran103.github.io/happycamper-heart/docs/) to get the latest installer. No technical setup needed. Message Jay on WhatsApp if you have questions!
+> **Camp staff:** head to the [downloads page](https://jaymoran103.github.io/happycamper-demo/) to get the latest installer. No technical setup needed. Message Jay on WhatsApp if you have questions!
 
 HappyCamper is a Java Swing desktop app for camp roster validation. It cross-references camper and activity rosters to surface scheduling problems: activity conflicts, swim level mismatches, unfulfilled preferences, and more.
 
