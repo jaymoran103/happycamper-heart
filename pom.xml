@@ -12,6 +12,10 @@
         <maven.compiler.release>22</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.jupiter.version>5.10.1</junit.jupiter.version>
+
+        <!-- Injected by CI from a repository secret so the number stays out of this public repo.
+             Empty in local builds: the feedback dialog then offers "Just Save" only. -->
+        <happycamper.whatsapp></happycamper.whatsapp>
     </properties>
 
     <dependencies>

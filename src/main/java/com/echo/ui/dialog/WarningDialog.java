@@ -43,7 +43,13 @@ public class WarningDialog extends CardDialog{
         revalidate();
     }
 
-    
+    /**
+     * Exposes the whole log so a feedback report raised from any card covers every warning,
+     * not just the type currently displayed.
+     */
+    public Map<WarningType, ArrayList<RosterWarning>> getWarningLog() {
+        return warningLog;
+    }
 
     /**
      * Assigns the mainPanel a cardlayout and adds a warning panel for each warning type in warningLog
